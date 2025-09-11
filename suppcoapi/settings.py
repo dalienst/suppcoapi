@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     "cloudinary",
     # Local apps
     "accounts",
+    "companies",
+    "verification",
 ]
 
 MIDDLEWARE = [

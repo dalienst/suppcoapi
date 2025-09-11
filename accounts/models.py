@@ -4,8 +4,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 
 from accounts.abstracts import (
     AbstractProfileModel,
@@ -13,6 +11,7 @@ from accounts.abstracts import (
     UniversalIdModel,
     ReferenceModel,
 )
+from accounts.utils import generate_username
 
 
 class UserManager(BaseUserManager):
@@ -56,6 +55,9 @@ class User(
     ReferenceModel,
 ):
     email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(
+        max_length=255, unique=True, default=generate_username, editable=False
+    )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_contractor = models.BooleanField(default=False)

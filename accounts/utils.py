@@ -23,9 +23,11 @@ def generate_reference():
     random_string = "".join(secrets.choice(characters) for _ in range(12))
     return random_string.upper()
 
+
 def generate_username():
     year = datetime.now().year % 100
-    random_number = "".join(secrets.choice(string.digits) for _ in range(6))
+    random_number = "".join(secrets.choice(string.digits) for _ in range(10))
+    return f"suppco{year}{random_number}"
 
 
 def send_activation_email(user):
@@ -50,65 +52,6 @@ def send_activation_email(user):
             "from": "SUPPCO <onboarding@corbantechnologies.org>",
             "to": [user.email],
             "subject": "Activate your account",
-            "html": email_body,
-        }
-        response = resend.Emails.send(params)
-        logger.info(f"Email sent to {user.email} with response: {response}")
-        return response
-
-    except Exception as e:
-        logger.error(f"Error sending email to {user.email}: {str(e)}")
-        return None
-
-
-def send_account_creation_email(user):
-    """
-    A function to send a successful account creation email
-    """
-    email_body = ""
-    current_year = datetime.now().year
-
-    try:
-
-        email_body = render_to_string(
-            "account_created.html", {"user": user, "current_year": current_year}
-        )
-        params = {
-            "from": "SUPPCO <onboarding@corbantechnologies.org>",
-            "to": [user.email],
-            "subject": "Welcome to SUPPCO",
-            "html": email_body,
-        }
-        response = resend.Emails.send(params)
-        logger.info(f"Email sent to {user.email} with response: {response}")
-        return response
-
-    except Exception as e:
-        logger.error(f"Error sending email to {user.email}: {str(e)}")
-        return None
-
-
-def send_verification_email(user, verification_code):
-    """
-    A function to send a verification email
-    """
-
-    email_body = ""
-    current_year = datetime.now().year
-
-    try:
-        email_body = render_to_string(
-            "account_verification.html",
-            {
-                "user": user,
-                "verification_code": verification_code,
-                "current_year": current_year,
-            },
-        )
-        params = {
-            "from": "SUPPCO <onboarding@corbantechnologies.org>",
-            "to": [user.email],
-            "subject": "Verify your account",
             "html": email_body,
         }
         response = resend.Emails.send(params)
