@@ -1,0 +1,71 @@
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
+from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+from accounts.abstracts import (
+    AbstractProfileModel,
+    TimeStampedModel,
+    UniversalIdModel,
+    ReferenceModel,
+)
+
+
+class UserManager(BaseUserManager):
+    use_in_migrations: bool = True
+
+    def _create_user(self, email, password, **kwargs):
+        if not email:
+            raise ValueError("The given email must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **kwargs)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_user(self, email, password=None, **kwargs):
+        kwargs.setdefault("is_staff", False)
+        kwargs.setdefault("is_superuser", False)
+        return self._create_user(email, password, **kwargs)
+
+    def create_superuser(self, email, password, **kwargs):
+        kwargs.setdefault("is_staff", True)
+        kwargs.setdefault("is_superuser", True)
+        kwargs.setdefault("is_active", True)
+
+        if kwargs.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if kwargs.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+        if kwargs.get("is_active") is not True:
+            raise ValueError("Superuser must have is_active=True.")
+
+        return self._create_user(email, password, **kwargs)
+
+
+class User(
+    AbstractBaseUser,
+    PermissionsMixin,
+    UniversalIdModel,
+    TimeStampedModel,
+    AbstractProfileModel,
+    ReferenceModel,
+):
+    email = models.EmailField(max_length=255, unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    is_contractor = models.BooleanField(default=False)
+    is_supplier = models.BooleanField(default=False)
+    is_subcontractor = models.BooleanField(default=False)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["password"]
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.email
