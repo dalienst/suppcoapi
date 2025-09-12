@@ -15,6 +15,7 @@ from accounts.validators import (
     validate_password_uppercase,
 )
 from verification.models import VerificationCode
+from companies.serializers import CompanySerializer
 
 User = get_user_model()
 
@@ -52,13 +53,13 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "kra_pin",
             "location",
             "reference",
-            "created_at",
-            "updated_at",
             "is_staff",
             "is_active",
             "is_contractor",
             "is_supplier",
             "is_subcontractor",
+            "created_at",
+            "updated_at",
         )
 
     def create_user(self, validated_data, role_field):
@@ -118,6 +119,7 @@ class VerifyAccountSerializer(serializers.Serializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(required=True, write_only=True)
+
 
 """
 Password Reset Serializers
@@ -191,3 +193,37 @@ class PasswordResetSerializer(serializers.Serializer):
         verification.save()
 
         return user
+
+
+"""
+Specified serializers for user details and listing
+"""
+
+
+class OwnerSerializer(BaseUserSerializer):
+    company = CompanySerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "username",
+            "password",
+            "first_name",
+            "last_name",
+            "avatar",
+            "phone",
+            "identification",
+            "kra_pin",
+            "location",
+            "reference",
+            "is_staff",
+            "is_active",
+            "is_contractor",
+            "is_supplier",
+            "is_subcontractor",
+            "created_at",
+            "updated_at",
+            "company",
+        )
