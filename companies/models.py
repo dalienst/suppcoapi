@@ -21,9 +21,10 @@ class Company(TimeStampedModel, UniversalIdModel, ReferenceModel):
     )
     kra_pin = models.CharField(max_length=255, null=True, blank=True, unique=True)
     currency = models.CharField(max_length=20, blank=True, null=True)
+    vat_compliance = models.BooleanField(default=False)
+    # if vat_compliance is True, vat_number must be provided
     vat_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
     fiscal_year = models.CharField(max_length=20, blank=True, null=True)
-    vat_compliance = models.BooleanField(default=False)
     type = models.CharField(max_length=20, blank=True, null=True)
     identity = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
@@ -40,10 +41,13 @@ class Company(TimeStampedModel, UniversalIdModel, ReferenceModel):
         Set the type of company based on the type of user
         """
         if self.user.is_contractor:
-            self.type = "contractor"
+            self.type = "CONTRACTOR"
         elif self.user.is_supplier:
-            self.type = "supplier"
+            self.type = "SUPPLIER"
 
         if not self.identity:
             self.identity = slugify(f"{self.user.username}-{self.type}")
+
+        if self.vat_compliance and not self.vat_number:
+            raise ValueError("VAT number must be provided if VAT compliance is True")
         super().save(*args, **kwargs)
