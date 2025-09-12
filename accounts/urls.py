@@ -10,6 +10,7 @@ from accounts.views import (
     PasswordResetView,
     UsersListView,
     UserPublicProfile,
+    OwnerDetailView,
 )
 
 app_name = "accounts"
@@ -33,4 +34,6 @@ urlpatterns = [
     # Password reset
     path("password/reset/", RequestPasswordResetView.as_view(), name="password-reset"),
     path("password/new/", PasswordResetView.as_view(), name="password-reset"),
+    # Owners
+    path("owner/<str:id>/", OwnerDetailView.as_view(), name="owner-detail"),
 ]

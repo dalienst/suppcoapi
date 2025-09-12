@@ -16,6 +16,7 @@ from accounts.serializers import (
     UserLoginSerializer,
     RequestPasswordResetSerializer,
     PasswordResetSerializer,
+    OwnerSerializer,
 )
 from accounts.utils import send_password_reset_email
 
@@ -178,3 +179,18 @@ class PasswordResetView(APIView):
                 status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""
+Specified views
+"""
+
+
+class OwnerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OwnerSerializer
+    queryset = User.objects.all()
+    lookup_field = "id"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(id=self.request.user.id)
