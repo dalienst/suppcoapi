@@ -11,7 +11,7 @@ User = get_user_model()
 class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
     name = models.CharField(max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sites")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sites")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="sites")
     identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
 

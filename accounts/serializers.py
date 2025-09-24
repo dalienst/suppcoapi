@@ -57,6 +57,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "is_active",
             "is_contractor",
             "is_supplier",
+            "assigned_site",
+            "assigned_branch",
             "created_at",
             "updated_at",
         )
@@ -221,7 +223,17 @@ class OwnerSerializer(BaseUserSerializer):
             "is_active",
             "is_contractor",
             "is_supplier",
+            "assigned_site",
+            "assigned_branch",
             "created_at",
             "updated_at",
             "company",
         )
+
+
+"""
+Employees Serializers: invitations etc
+"""
+
+class EmployeeCreatedByOwnerSerializer():
+    pass

@@ -2,7 +2,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
-    Group
+    Group,
 )
 from django.db import models
 
@@ -63,6 +63,22 @@ class User(
     is_active = models.BooleanField(default=False)
     is_contractor = models.BooleanField(default=False)
     is_supplier = models.BooleanField(default=False)
+
+    # assignments
+    assigned_site = models.ForeignKey(
+        "sites.Site",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_staff",
+    )
+    assigned_branch = models.ForeignKey(
+        "branches.Branch",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_staff",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["password"]

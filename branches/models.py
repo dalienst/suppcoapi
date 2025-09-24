@@ -11,7 +11,7 @@ User = get_user_model()
 class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
     name = models.CharField(max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="branches")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="branches")
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="branch"
     )

@@ -9,10 +9,10 @@ User = get_user_model()
 
 
 class Role(UniversalIdModel, TimeStampedModel, ReferenceModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=2555)
     is_head = models.BooleanField(default=False, help_text="Role head: if they can be in charge of branches or sites")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="roles")
-    created_by = models.ForeignKey(
+    user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="created_roles"
     )
     identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
@@ -20,7 +20,7 @@ class Role(UniversalIdModel, TimeStampedModel, ReferenceModel):
     class Meta:
         verbose_name = "Role"
         verbose_name_plural = "Roles"
-        ordering = ["-created_at"]
+        ordering = ["company","-created_at"]
         unique_together = ("name", "company")
 
     def __str__(self):

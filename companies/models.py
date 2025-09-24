@@ -11,7 +11,7 @@ User = get_user_model()
 
 class Company(TimeStampedModel, UniversalIdModel, ReferenceModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="company")
-    name = models.CharField(max_length=255, blank=False, null=False, unique=True)
+    name = models.CharField(max_length=2550, blank=False, null=False, unique=True)
     email = models.EmailField(max_length=255, blank=False, null=False, unique=True)
     phone = models.CharField(null=True, blank=True, max_length=15, unique=True)
     address = models.TextField(null=True, blank=True)
