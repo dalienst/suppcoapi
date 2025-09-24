@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "verification",
     "branches",
     "sites",
+    "roles",
 ]
 
 MIDDLEWARE = [

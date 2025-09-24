@@ -28,6 +28,10 @@ class Company(TimeStampedModel, UniversalIdModel, ReferenceModel):
     type = models.CharField(max_length=20, blank=True, null=True)
     identity = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
+    # staff = models.ManyToManyField(
+    #     User, through="Employment", related_name="employees", blank=True
+    # )
+
     def __str__(self):
         return self.name
 
