@@ -62,7 +62,6 @@ class User(
     is_active = models.BooleanField(default=False)
     is_contractor = models.BooleanField(default=False)
     is_supplier = models.BooleanField(default=False)
-    is_subcontractor = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["password"]
