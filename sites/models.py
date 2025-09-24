@@ -1,25 +1,23 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
 
-from accounts.abstracts import TimeStampedModel, UniversalIdModel, ReferenceModel
 from companies.models import Company
+from accounts.abstracts import TimeStampedModel, UniversalIdModel, ReferenceModel
 
 User = get_user_model()
 
 
-class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
+class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
     name = models.CharField(max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="branches")
-    company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="branch"
-    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sites")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="sites")
     identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
 
     class Meta:
-        verbose_name = "Branch"
-        verbose_name_plural = "Branches"
+        verbose_name = "Site"
+        verbose_name_plural = "Sites"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -27,5 +25,5 @@ class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
 
     def save(self, *args, **kwargs):
         if not self.identity:
-            self.identity = slugify(f"branch-{self.company.name}-{self.name}")
+            self.identity = slugify(f"site-{self.company.name}-{self.name}")
         super().save(*args, **kwargs)

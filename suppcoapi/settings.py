@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "companies",
     "verification",
     "branches",
+    "sites",
 ]
 
 MIDDLEWARE = [
