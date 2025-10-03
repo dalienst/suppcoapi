@@ -75,7 +75,7 @@ class SupplierSerializer(BaseUserSerializer):
     def create(self, validated_data):
         user = self.create_user(validated_data, "is_supplier")
         user.save()
-        Company.objects.create(user=user)
+        Company.objects.create(user=user, name=user.username)
         return user
 
 
@@ -83,7 +83,7 @@ class ContractorSerializer(BaseUserSerializer):
     def create(self, validated_data):
         user = self.create_user(validated_data, "is_contractor")
         user.save()
-        Company.objects.create(user=user)
+        Company.objects.create(user=user, name=user.username)
         return user
 
 
