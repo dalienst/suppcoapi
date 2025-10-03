@@ -40,7 +40,6 @@ class UserAdmin(BaseUserAdmin):
             {
                 "fields": (
                     "reference",
-                    "slug",
                     "is_contractor",
                     "is_supplier",
                 )

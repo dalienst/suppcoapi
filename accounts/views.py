@@ -52,9 +52,7 @@ class LoginView(APIView):
                         "is_staff": user.is_staff,
                         "is_contractor": user.is_contractor,
                         "is_supplier": user.is_supplier,
-                        "is_subcontractor": user.is_subcontractor,
                         "reference": user.reference,
-                        "slug": user.slug,
                         "last_login": user.last_login,
                         "token": token.key,
                     }
