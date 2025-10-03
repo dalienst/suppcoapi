@@ -40,10 +40,8 @@ class UserAdmin(BaseUserAdmin):
             {
                 "fields": (
                     "reference",
-                    "slug",
                     "is_contractor",
                     "is_supplier",
-                    "is_subcontractor",
                 )
             },
         ),
@@ -65,7 +63,6 @@ class UserAdmin(BaseUserAdmin):
         "is_active",
         "is_contractor",
         "is_supplier",
-        "is_subcontractor",
     )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
@@ -74,7 +71,6 @@ class UserAdmin(BaseUserAdmin):
         "is_active",
         "is_contractor",
         "is_supplier",
-        "is_subcontractor",
     )
 
 

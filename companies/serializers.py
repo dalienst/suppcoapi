@@ -9,7 +9,7 @@ User = get_user_model()
 
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        max_length=255,
+        max_length=2550,
         validators=[UniqueValidator(queryset=Company.objects.all())],
         required=False,
     )
