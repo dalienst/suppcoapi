@@ -252,26 +252,54 @@ Employees Serializers: invitations etc
 
 class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
     company = serializers.SlugRelatedField(
-        queryset=Company.objects.all(), slug_field="name"
+        queryset=Company.objects.all(), slug_field="name", write_only=True
     )
     role = serializers.SlugRelatedField(
-        queryset=Role.objects.all(), slug_field="identity"
+        queryset=Role.objects.all(), slug_field="identity", write_only=True
     )
     site = serializers.SlugRelatedField(
-        queryset=Site.objects.all(), slug_field="identity", required=False
+        queryset=Site.objects.all(),
+        slug_field="identity",
+        required=False,
+        write_only=True,
     )
     branch = serializers.SlugRelatedField(
-        queryset=Branch.objects.all(), slug_field="identity", required=False
+        queryset=Branch.objects.all(),
+        slug_field="identity",
+        required=False,
+        write_only=True,
     )
     employment = EmploymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = BaseUserSerializer.Meta.fields + (
+        fields = (
+            "id",
+            "email",
+            "username",
+            "password",
+            "first_name",
+            "last_name",
+            "avatar",
+            "phone",
+            "identification",
+            "kra_pin",
+            "location",
+            "reference",
+            "is_staff",
+            "is_active",
+            "is_contractor",
+            "is_supplier",
+            "assigned_site",
+            "assigned_branch",
+            "created_at",
+            "updated_at",
+            "account_type",
             "company",
             "role",
             "site",
             "branch",
+            "employment",
         )
 
     def validate(self, attrs):
@@ -280,7 +308,7 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         site = attrs.get("site", None)
         branch = attrs.get("branch", None)
 
-        # check if user is owner of the company
+        # Check if user is owner of the company
         if not self.context["request"].user == company.user:
             raise serializers.ValidationError(
                 "You must be the company owner to create an employee."
@@ -301,19 +329,21 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         return attrs
 
     def create(self, validated_data):
-        company = validated_data.get("company")
-        role = validated_data.get("role")
-        site = validated_data.get("site", None)
-        branch = validated_data.get("branch", None)
+        company = validated_data.pop("company")
+        role = validated_data.pop("role")
+        site = validated_data.pop("site", None)
+        branch = validated_data.pop("branch", None)
         temporary_password = validated_data.get("password")
 
         # Create User
         user = self.create_user(validated_data, "is_employee")
         user.account_type = "EMPLOYEE"
         user.save()
+
         # Create Employment
         Employment.objects.create(user=user, company=company, role=role)
 
+        # Handle site/branch assignment
         if site:
             user.assigned_site = site
             if role.is_head:
@@ -327,6 +357,7 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
                 branch.save()
             user.save()
 
+        # Send employee added email with credentials
         send_employee_added_email(
             self.context["request"].user, user, temporary_password
         )

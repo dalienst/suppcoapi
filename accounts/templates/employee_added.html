@@ -10,8 +10,7 @@
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2>Welcome to {{ company.name }}!</h2>
             <p>Dear {{ employee.first_name|default:employee.email }},</p>
-            <p>You have been added to {{ company.name }} as a {{ role.name }} by {{ owner.first_name|default:owner.email
-                }}.</p>
+            <p>You have been added to {{ company.name }} as a {{ role.name }}</p>
 
             <h3>Your Account Details</h3>
             <ul>
