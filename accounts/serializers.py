@@ -16,6 +16,12 @@ from accounts.validators import (
 )
 from verification.models import VerificationCode
 from companies.serializers import CompanySerializer
+from companies.models import Company
+from roles.models import Role
+from branches.models import Branch
+from sites.models import Site
+from employment.models import Employment
+from employment.serializers import EmploymentSerializer
 
 User = get_user_model()
 
@@ -37,6 +43,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         ],
     )
     avatar = serializers.ImageField(use_url=True, required=False)
+    employment = EmploymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -59,8 +66,10 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "is_supplier",
             "assigned_site",
             "assigned_branch",
+            "account_type",
             "created_at",
             "updated_at",
+            "employment",
         )
 
     def create_user(self, validated_data, role_field):
@@ -74,6 +83,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 class SupplierSerializer(BaseUserSerializer):
     def create(self, validated_data):
         user = self.create_user(validated_data, "is_supplier")
+        user.account_type = "SUPPLIER"
         user.save()
         Company.objects.create(user=user, name=user.username)
         return user
@@ -82,6 +92,7 @@ class SupplierSerializer(BaseUserSerializer):
 class ContractorSerializer(BaseUserSerializer):
     def create(self, validated_data):
         user = self.create_user(validated_data, "is_contractor")
+        user.account_type = "CONTRACTOR"
         user.save()
         Company.objects.create(user=user, name=user.username)
         return user
@@ -227,6 +238,7 @@ class OwnerSerializer(BaseUserSerializer):
             "assigned_branch",
             "created_at",
             "updated_at",
+            "account_type",
             "company",
         )
 
@@ -235,5 +247,80 @@ class OwnerSerializer(BaseUserSerializer):
 Employees Serializers: invitations etc
 """
 
-class EmployeeCreatedByOwnerSerializer():
-    pass
+
+class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
+    company = serializers.SlugRelatedField(
+        queryset=Company.objects.all(), slug_field="name"
+    )
+    role = serializers.SlugRelatedField(
+        queryset=Role.objects.all(), slug_field="identity"
+    )
+    site = serializers.SlugRelatedField(
+        queryset=Site.objects.all(), slug_field="identity"
+    )
+    branch = serializers.SlugRelatedField(
+        queryset=Branch.objects.all(), slug_field="identity"
+    )
+
+    class Meta:
+        model = User
+        fields = BaseUserSerializer.Meta.fields + (
+            "company",
+            "role",
+            "site",
+            "branch",
+        )
+
+    def validate(self, attrs):
+        company = attrs.get("company")
+        role = attrs.get("role")
+        site = attrs.get("site")
+        branch = attrs.get("branch")
+
+        # check if user is owner of the company
+        if not self.context["request"].user == company.user:
+            raise serializers.ValidationError(
+                "You must be the company owner to create an employee."
+            )
+
+        # Prevent assigning both site and branch
+        if site and branch:
+            raise serializers.ValidationError("Cannot assign both site and branch")
+
+        # check if role, site and branch are in the company
+        if role.company != company:
+            raise serializers.ValidationError("Role is not in this company")
+        if site.company != company:
+            raise serializers.ValidationError("Site is not in this company")
+        if branch.company != company:
+            raise serializers.ValidationError("Branch is not in this company")
+
+        return attrs
+
+    def create(self, validated_data):
+        company = validated_data.get("company")
+        role = validated_data.get("role")
+        site = validated_data.get("site", None)
+        branch = validated_data.get("branch", None)
+
+        # Create User
+        user = self.create_user(validated_data)
+        user.account_type = "EMPLOYEE"
+        user.save()
+        # Create Employment
+        Employment.objects.create(user=user, company=company, role=role)
+
+        if site:
+            user.assigned_site = site
+            if role.is_head:
+                site.head = user
+                site.save()
+            user.save()
+        elif branch:
+            user.assigned_branch = branch
+            if role.is_head:
+                branch.head = user
+                branch.save()
+            user.save()
+
+        return user
