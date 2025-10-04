@@ -16,6 +16,7 @@ class Employment(UniversalIdModel, TimeStampedModel, ReferenceModel):
     )
     role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="employees")
     is_active = models.BooleanField(default=True)
+    identity = models.CharField(max_length=1000, null=True, blank=True, unique=True)
 
     class Meta:
         verbose_name = "Employment"

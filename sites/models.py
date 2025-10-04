@@ -13,7 +13,7 @@ class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
     address = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sites")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="sites")
-    identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    identity = models.CharField(max_length=700, null=True, blank=True, unique=True)
 
     class Meta:
         verbose_name = "Site"

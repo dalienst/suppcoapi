@@ -11,6 +11,7 @@ from accounts.views import (
     UsersListView,
     UserPublicProfile,
     OwnerDetailView,
+    EmployeeCreatedByOwnerView,
 )
 
 app_name = "accounts"
@@ -36,4 +37,5 @@ urlpatterns = [
     path("password/new/", PasswordResetView.as_view(), name="password-reset"),
     # Owners
     path("owner/<str:id>/", OwnerDetailView.as_view(), name="owner-detail"),
+    path("add/employee/", EmployeeCreatedByOwnerView.as_view(), name="employee-create"),
 ]

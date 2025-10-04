@@ -42,6 +42,7 @@ class UserAdmin(BaseUserAdmin):
                     "reference",
                     "is_contractor",
                     "is_supplier",
+                    "account_type",
                 )
             },
         ),
@@ -63,6 +64,7 @@ class UserAdmin(BaseUserAdmin):
         "is_active",
         "is_contractor",
         "is_supplier",
+        "account_type",
     )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
@@ -71,6 +73,9 @@ class UserAdmin(BaseUserAdmin):
         "is_active",
         "is_contractor",
         "is_supplier",
+        "assigned_site",
+        "assigned_branch",
+        "account_type",
     )
 
 

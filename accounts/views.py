@@ -17,8 +17,10 @@ from accounts.serializers import (
     RequestPasswordResetSerializer,
     PasswordResetSerializer,
     OwnerSerializer,
+    EmployeeCreatedByOwnerSerializer,
 )
 from accounts.utils import send_password_reset_email
+from companies.permissions import IsOwnerOrReadOnly
 
 User = get_user_model()
 
@@ -53,7 +55,7 @@ class LoginView(APIView):
                         "is_contractor": user.is_contractor,
                         "is_supplier": user.is_supplier,
                         "reference": user.reference,
-                        "last_login": user.last_login,
+                        "account_type": user.account_type,
                         "token": token.key,
                     }
                     return Response(user_details, status=status.HTTP_200_OK)
@@ -192,3 +194,15 @@ class OwnerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return super().get_queryset().filter(id=self.request.user.id)
+
+
+# Employment views
+class EmployeeCreatedByOwnerView(generics.ListCreateAPIView):
+    permission_classes = (IsOwnerOrReadOnly,)
+    serializer_class = EmployeeCreatedByOwnerSerializer
+    queryset = User.objects.all()
+
+    def get_queryset(self):
+        return (
+            super().get_queryset().filter(employment__company__user=self.request.user)
+        )

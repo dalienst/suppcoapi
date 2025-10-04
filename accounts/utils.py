@@ -92,3 +92,58 @@ def send_password_reset_email(user, verification_code):
     except Exception as e:
         logger.error(f"Error sending email to {user.email}: {str(e)}")
         return None
+
+
+def send_employee_added_email(user, employee, temporary_password):
+    """
+    Send an email to an employee notifying them they have been added to a company,
+    including their login credentials and activation link.
+
+    Args:
+        user: The company owner (User instance) who added the employee.
+        employee: The employee (User instance) being notified.
+        temporary_password: The temporary password set for the employee.
+
+    Returns:
+        The response from the email service, or None if sending fails.
+    """
+    try:
+        # Get the employment record to access company and role
+        employment = employee.employment.filter(is_active=True).first()
+        if not employment:
+            raise ValueError("No active employment found for the employee.")
+
+        # Prepare context for the email template
+        email_body = render_to_string(
+            "employee_added.html",
+            {
+                "owner": user,
+                "employee": employee,
+                "company": employment.company,
+                "role": employment.role,
+                "temporary_password": temporary_password,
+                "domain": DOMAIN,
+                "uid": urlsafe_base64_encode(force_bytes(employee.pk)),
+                "token": account_activation_token.make_token(employee),
+                "current_year": current_year,
+                "site": employee.assigned_site,
+                "branch": employee.assigned_branch,
+            },
+        )
+        params = {
+            "from": "SUPPCO <onboarding@corbantechnologies.org>",
+            "to": [employee.email],
+            "subject": f"Welcome to {employment.company.name} - Your Account Details",
+            "html": email_body,
+        }
+        response = resend.Emails.send(params)
+        logger.info(
+            f"Employee added email sent to {employee.email} with response: {response}"
+        )
+        return response
+
+    except Exception as e:
+        logger.error(
+            f"Error sending employee added email to {employee.email}: {str(e)}"
+        )
+        return None

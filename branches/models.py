@@ -15,7 +15,7 @@ class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="branch"
     )
-    identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    identity = models.CharField(max_length=700, null=True, blank=True, unique=True)
 
     class Meta:
         verbose_name = "Branch"

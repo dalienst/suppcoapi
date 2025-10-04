@@ -63,6 +63,8 @@ class User(
     is_active = models.BooleanField(default=False)
     is_contractor = models.BooleanField(default=False)
     is_supplier = models.BooleanField(default=False)
+    is_employee = models.BooleanField(default=False)
+    account_type = models.CharField(max_length=20, default="user", editable=False)
 
     # assignments
     assigned_site = models.ForeignKey(
