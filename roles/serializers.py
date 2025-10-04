@@ -23,3 +23,17 @@ class RoleSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def validate(self, attrs):
+        # Only create roles for your company
+        company = attrs.get("company")
+        name = attrs.get("name")
+        if company.user != self.context["request"].user:
+            raise serializers.ValidationError(
+                "You can only create roles for your company"
+            )
+
+        # prevent creating roles with the same name despite the case
+        if Role.objects.filter(name__iexact=name, company=company).exists():
+            raise serializers.ValidationError("Role with this name already exists")
+        return super().validate(attrs)

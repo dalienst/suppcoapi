@@ -7,7 +7,7 @@ from rest_framework.validators import UniqueValidator
 
 from accounts.tokens import account_activation_token
 from companies.models import Company
-from accounts.utils import send_activation_email
+from accounts.utils import send_activation_email, send_employee_added_email
 from accounts.validators import (
     validate_password_digit,
     validate_password_lowercase,
@@ -64,6 +64,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "is_active",
             "is_contractor",
             "is_supplier",
+            "is_employee",
             "assigned_site",
             "assigned_branch",
             "account_type",
@@ -257,11 +258,12 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         queryset=Role.objects.all(), slug_field="identity"
     )
     site = serializers.SlugRelatedField(
-        queryset=Site.objects.all(), slug_field="identity"
+        queryset=Site.objects.all(), slug_field="identity", required=False
     )
     branch = serializers.SlugRelatedField(
-        queryset=Branch.objects.all(), slug_field="identity"
+        queryset=Branch.objects.all(), slug_field="identity", required=False
     )
+    employment = EmploymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -275,8 +277,8 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
     def validate(self, attrs):
         company = attrs.get("company")
         role = attrs.get("role")
-        site = attrs.get("site")
-        branch = attrs.get("branch")
+        site = attrs.get("site", None)
+        branch = attrs.get("branch", None)
 
         # check if user is owner of the company
         if not self.context["request"].user == company.user:
@@ -284,16 +286,16 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
                 "You must be the company owner to create an employee."
             )
 
+        if role.company != company:
+            raise serializers.ValidationError("Role is not in this company")
+
         # Prevent assigning both site and branch
         if site and branch:
             raise serializers.ValidationError("Cannot assign both site and branch")
 
-        # check if role, site and branch are in the company
-        if role.company != company:
-            raise serializers.ValidationError("Role is not in this company")
-        if site.company != company:
+        if site and site.company != company:
             raise serializers.ValidationError("Site is not in this company")
-        if branch.company != company:
+        if branch and branch.company != company:
             raise serializers.ValidationError("Branch is not in this company")
 
         return attrs
@@ -303,9 +305,10 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         role = validated_data.get("role")
         site = validated_data.get("site", None)
         branch = validated_data.get("branch", None)
+        temporary_password = validated_data.get("password")
 
         # Create User
-        user = self.create_user(validated_data)
+        user = self.create_user(validated_data, "is_employee")
         user.account_type = "EMPLOYEE"
         user.save()
         # Create Employment
@@ -323,5 +326,9 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
                 branch.head = user
                 branch.save()
             user.save()
+
+        send_employee_added_email(
+            self.context["request"].user, user, temporary_password
+        )
 
         return user

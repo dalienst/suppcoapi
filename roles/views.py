@@ -16,6 +16,8 @@ class RoleListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
     # TODO: only get roles for the company that the user is in either as the owner or staff
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
 
 class RoleDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -25,3 +27,6 @@ class RoleDetailView(generics.RetrieveUpdateDestroyAPIView):
         IsOwnerOrReadOnly,
     ]
     lookup_field = "identity"
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
