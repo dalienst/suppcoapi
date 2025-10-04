@@ -240,6 +240,7 @@ class OwnerSerializer(BaseUserSerializer):
             "updated_at",
             "account_type",
             "company",
+            "employment",
         )
 
 

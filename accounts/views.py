@@ -55,7 +55,7 @@ class LoginView(APIView):
                         "is_contractor": user.is_contractor,
                         "is_supplier": user.is_supplier,
                         "reference": user.reference,
-                        "last_login": user.last_login,
+                        "account_type": user.account_type,
                         "token": token.key,
                     }
                     return Response(user_details, status=status.HTTP_200_OK)
