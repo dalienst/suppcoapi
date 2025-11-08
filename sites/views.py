@@ -9,10 +9,9 @@ from companies.permissions import IsContractorOrReadOnly
 class SiteListCreateView(generics.ListCreateAPIView):
     queryset = Site.objects.all()
     serializer_class = SiteSerializer
-    permission_classes = [IsContractorOrReadOnly, IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    permission_classes = [
+        IsContractorOrReadOnly,
+    ]
 
 
 class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -20,6 +19,5 @@ class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SiteSerializer
     permission_classes = [
         IsContractorOrReadOnly,
-        IsAuthenticated,
     ]
     lookup_field = "identity"

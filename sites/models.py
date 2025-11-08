@@ -24,6 +24,12 @@ class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.identity:
-            self.identity = slugify(f"site-{self.company.name}-{self.name}")
+        if not self.identity and self.company and self.name:
+            base_identity = slugify(f"site-{self.company.name}-{self.name}")
+            identity = base_identity
+            count = 1
+            while Site.objects.filter(identity=identity).exists():
+                identity = f"{base_identity}-{count}"
+                count += 1
+            self.identity = identity
         super().save(*args, **kwargs)

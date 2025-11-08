@@ -26,6 +26,13 @@ class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.identity:
-            self.identity = slugify(f"branch-{self.company.name}-{self.name}")
+
+        if not self.identity and self.company and self.name:
+            base_identity = slugify(f"branch-{self.company.name}-{self.name}")
+            identity = base_identity
+            count = 1
+            while Branch.objects.filter(identity=identity).exists():
+                identity = f"{base_identity}-{count}"
+                count += 1
+            self.identity = identity
         super().save(*args, **kwargs)

@@ -10,19 +10,14 @@ class BranchListCreateView(generics.ListCreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     permission_classes = [
-        IsAuthenticated,
         IsSupplierOrReadOnly,
     ]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
 
 class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     permission_classes = [
-        IsAuthenticated,
         IsSupplierOrReadOnly,
     ]
     lookup_field = "identity"
