@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
-    name = models.CharField(max_length=200, null=True, blank=True)
+    name = models.CharField(max_length=200)
     address = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sites")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="sites")
@@ -21,7 +21,7 @@ class Site(UniversalIdModel, TimeStampedModel, ReferenceModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.company.name}"
 
     def save(self, *args, **kwargs):
         if not self.identity and self.company and self.name:

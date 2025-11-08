@@ -42,20 +42,14 @@ class UserAdmin(BaseUserAdmin):
                     "reference",
                     "is_contractor",
                     "is_supplier",
-                    "account_type",
+                    "assigned_site",
+                    "assigned_branch",
                 )
             },
         ),
+        (_("Account"), {"fields": ("account_type",)}),  # Optional: separate section
     )
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("email", "password"),
-            },
-        ),
-    )
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password")}),)
     list_display = (
         "email",
         "first_name",
@@ -77,6 +71,8 @@ class UserAdmin(BaseUserAdmin):
         "assigned_branch",
         "account_type",
     )
+
+    readonly_fields = ("account_type", "username", "reference")
 
 
 admin.site.register(User, UserAdmin)

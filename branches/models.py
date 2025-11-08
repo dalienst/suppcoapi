@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
-    name = models.CharField(max_length=200, null=True, blank=True)
+    name = models.CharField(max_length=200)
     address = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="branches")
     company = models.ForeignKey(
@@ -23,7 +23,7 @@ class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.company.name}"
 
     def save(self, *args, **kwargs):
 
