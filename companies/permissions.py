@@ -14,3 +14,29 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
 
         return obj.user == request.user
+
+
+class IsSupplierOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of a company
+    to edit it. Assumes the model instance has an `user` attribute.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+
+        return obj.user.is_supplier
+
+
+class IsContractorOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of a company
+    to edit it. Assumes the model instance has an `user` attribute.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+
+        return obj.user.is_contractor
