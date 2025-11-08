@@ -112,6 +112,7 @@ Account Verification
 
 class VerifyAccountView(GenericAPIView):
     serializer_class = VerifyAccountSerializer
+    permission_classes = (AllowAny,)
 
     def patch(self, request, uidb64, token, **kwargs):
         data = {"uidb64": uidb64, "token": token}
