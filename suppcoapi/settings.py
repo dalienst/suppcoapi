@@ -57,7 +57,9 @@ INSTALLED_APPS = [
     "branches",
     "sites",
     "roles",
+    # Inventory apps
     "layers",
+    "sublayers",
 ]
 
 MIDDLEWARE = [
