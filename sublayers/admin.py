@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from sublayers.models import SubLayer
+
+admin.site.register(SubLayer)
