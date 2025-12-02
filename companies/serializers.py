@@ -54,5 +54,6 @@ class CompanySerializer(serializers.ModelSerializer):
             "identity",
             "created_at",
             "updated_at",
+            "reference",
         )
         

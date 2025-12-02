@@ -252,7 +252,7 @@ Employees Serializers: invitations etc
 
 class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
     company = serializers.SlugRelatedField(
-        queryset=Company.objects.all(), slug_field="name", write_only=True
+        queryset=Company.objects.all(), slug_field="identity", write_only=True
     )
     role = serializers.SlugRelatedField(
         queryset=Role.objects.all(), slug_field="identity", write_only=True

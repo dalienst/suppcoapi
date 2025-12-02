@@ -14,3 +14,17 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
 
         return obj.user == request.user
+
+
+class IsSupplierOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS or (
+            request.user.is_authenticated and request.user.is_supplier
+        )
+
+
+class IsContractorOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS or (
+            request.user.is_authenticated and request.user.is_contractor
+        )

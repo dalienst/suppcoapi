@@ -27,3 +27,12 @@ class CompanyListView(generics.ListAPIView):
     ]
 
 
+class MyCompanyListView(generics.ListAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get_queryset(self):
+        return Company.objects.filter(user=self.request.user)

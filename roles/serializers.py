@@ -8,7 +8,7 @@ class RoleSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
     name = serializers.CharField(max_length=2555, required=True)
     company = serializers.SlugRelatedField(
-        queryset=Company.objects.all(), slug_field="name"
+        queryset=Company.objects.all(), slug_field="identity"
     )
     is_head = serializers.BooleanField(default=False)
 
