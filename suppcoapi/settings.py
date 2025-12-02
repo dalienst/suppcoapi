@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "layers",
     "sublayers",
     "sublayeritems",
+    "brackets",
 ]
 
 MIDDLEWARE = [
