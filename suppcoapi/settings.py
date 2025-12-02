@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "branches",
     "sites",
     "roles",
+    "layers",
 ]
 
 MIDDLEWARE = [
