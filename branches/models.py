@@ -15,6 +15,13 @@ class Branch(TimeStampedModel, UniversalIdModel, ReferenceModel):
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="branch"
     )
+    head = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="headed_branch",
+    )
     identity = models.CharField(max_length=700, null=True, blank=True, unique=True)
 
     class Meta:
