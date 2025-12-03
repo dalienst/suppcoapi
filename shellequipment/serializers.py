@@ -33,6 +33,7 @@ class ShellEquipmentSerializer(serializers.ModelSerializer):
     bracket = serializers.SlugRelatedField(
         slug_field="name", queryset=Bracket.objects.all(), required=False
     )
+    image = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = ShellEquipment
@@ -48,6 +49,7 @@ class ShellEquipmentSerializer(serializers.ModelSerializer):
             "source_location",
             "product_name",
             "specifications",
+            "image",
             "reference",
             "created_at",
             "updated_at",

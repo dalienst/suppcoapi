@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from cloudinary.models import CloudinaryField
 
 from accounts.abstracts import TimeStampedModel, UniversalIdModel, ReferenceModel
 from layers.models import Layer
@@ -14,9 +15,6 @@ User = get_user_model()
 
 
 class Electricity(TimeStampedModel, UniversalIdModel, ReferenceModel):
-    source_location = models.CharField(max_length=255, blank=True, null=True)
-    product_name = models.CharField(max_length=255, blank=True, null=True)
-    specifications = models.JSONField(blank=True, null=True)
     bracket = models.ForeignKey(
         Bracket,
         on_delete=models.SET_NULL,
@@ -63,6 +61,11 @@ class Electricity(TimeStampedModel, UniversalIdModel, ReferenceModel):
         null=True,
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="electricity")
+
+    source_location = models.CharField(max_length=255, blank=True, null=True)
+    product_name = models.CharField(max_length=255, blank=True, null=True)
+    specifications = models.JSONField(blank=True, null=True)
+    image = CloudinaryField("electricity", blank=True, null=True)
 
     class Meta:
         verbose_name = "Electricity"

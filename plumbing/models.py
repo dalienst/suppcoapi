@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from cloudinary.models import CloudinaryField
 
 from accounts.abstracts import TimeStampedModel, UniversalIdModel, ReferenceModel
 from layers.models import Layer
@@ -64,6 +65,7 @@ class Plumbing(TimeStampedModel, UniversalIdModel, ReferenceModel):
     source_location = models.CharField(max_length=255, null=True, blank=True)
     product_name = models.CharField(max_length=255, null=True, blank=True)
     specifications = models.JSONField(null=True, blank=True)
+    image = CloudinaryField("plumbing", blank=True, null=True)
 
     class Meta:
         verbose_name = "Plumbing"

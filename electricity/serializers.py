@@ -33,6 +33,7 @@ class ElectricitySerializer(serializers.ModelSerializer):
     bracket = serializers.SlugRelatedField(
         slug_field="name", queryset=Bracket.objects.all(), required=False
     )
+    image = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = Electricity
@@ -47,6 +48,7 @@ class ElectricitySerializer(serializers.ModelSerializer):
             "sublayer",
             "sublayeritem",
             "user",
+            "image",
             "reference",
             "created_at",
             "updated_at",
