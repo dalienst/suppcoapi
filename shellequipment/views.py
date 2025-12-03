@@ -8,7 +8,9 @@ from shellequipment.serializers import ShellEquipmentSerializer
 class ShellEquipmentListCreateView(generics.ListCreateAPIView):
     queryset = ShellEquipment.objects.all()
     serializer_class = ShellEquipmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -20,7 +22,9 @@ class ShellEquipmentListCreateView(generics.ListCreateAPIView):
 class ShellEquipmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ShellEquipment.objects.all()
     serializer_class = ShellEquipmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+    ]
     lookup_field = "reference"
 
     def get_queryset(self):
@@ -30,4 +34,6 @@ class ShellEquipmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIV
 class ShellEquipmentListView(generics.ListAPIView):
     queryset = ShellEquipment.objects.all()
     serializer_class = ShellEquipmentSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [
+        AllowAny,
+    ]

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "sublayeritems",
     "brackets",
     "shellequipment",
+    "sitesequipment",
 ]
 
 MIDDLEWARE = [

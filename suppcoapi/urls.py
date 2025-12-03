@@ -15,4 +15,5 @@ urlpatterns = [
     path("api/v1/sublayeritems/", include("sublayeritems.urls")),
     path("api/v1/brackets/", include("brackets.urls")),
     path("api/v1/shellequipment/", include("shellequipment.urls")),
+    path("api/v1/sitesequipment/", include("sitesequipment.urls")),
 ]
