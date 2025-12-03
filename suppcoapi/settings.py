@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "brackets",
     "shellequipment",
     "sitesequipment",
+    "plumbing",
 ]
 
 MIDDLEWARE = [
