@@ -72,11 +72,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         permissions = validated_data.pop("permissions", [])
-        role = Role.objects.create(
-            user=self.context["request"].user,
-            company=self.context["request"].user.company,
-            **validated_data
-        )
+        role = Role.objects.create(**validated_data)
         if permissions:
             role.permissions.set(permissions)
         return role
