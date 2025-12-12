@@ -4,6 +4,7 @@ from django.utils.text import slugify
 
 from accounts.abstracts import UniversalIdModel, TimeStampedModel, ReferenceModel
 from companies.models import Company
+from permissions.models import Permission
 
 User = get_user_model()
 
@@ -19,6 +20,11 @@ class Role(UniversalIdModel, TimeStampedModel, ReferenceModel):
         User, on_delete=models.CASCADE, related_name="created_roles"
     )
     identity = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    permissions = models.ManyToManyField(
+        Permission,
+        related_name="roles_permissions",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Role"

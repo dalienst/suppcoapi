@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "verification",
     "branches",
     "sites",
+    "permissions",
     "roles",
     # Inventory apps
     "layers",
