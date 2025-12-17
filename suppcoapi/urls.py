@@ -11,6 +11,7 @@ urlpatterns = [
     path("api/v1/sites/", include("sites.urls")),
     path("api/v1/employees/", include("employment.urls")),
     # Inventory
+    path("api/v1/inventory/", include("inventory.urls")),
     path("api/v1/layers/", include("layers.urls")),
     path("api/v1/sublayers/", include("sublayers.urls")),
     path("api/v1/sublayeritems/", include("sublayeritems.urls")),

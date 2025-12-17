@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "permissions",
     "roles",
     # Inventory apps
+    "inventory",
     "layers",
     "sublayers",
     "sublayeritems",
