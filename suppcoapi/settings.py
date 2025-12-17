@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "sublayers",
     "sublayeritems",
     "brackets",
+    "products",
     "shellequipment",
     "sitesequipment",
     "plumbing",
