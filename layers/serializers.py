@@ -10,7 +10,7 @@ class LayerSerializer(serializers.ModelSerializer):
         max_length=255,
         validators=[UniqueValidator(queryset=Layer.objects.all())],
     )
-    Inventory = serializers.SlugRelatedField(
+    inventory = serializers.SlugRelatedField(
         slug_field="inventory_code", queryset=Inventory.objects.all()
     )
 
