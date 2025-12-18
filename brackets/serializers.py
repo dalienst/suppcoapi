@@ -7,7 +7,7 @@ from sublayeritems.models import SublayerItem
 
 class BracketSerializer(serializers.ModelSerializer):
     sublayeritem = serializers.SlugRelatedField(
-        slug_field="name", queryset=SublayerItem.objects.all()
+        slug_field="reference", queryset=SublayerItem.objects.all()
     )
     name = serializers.CharField()
 

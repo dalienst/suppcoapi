@@ -7,7 +7,7 @@ from sublayers.models import SubLayer
 
 class SublayerItemSerializer(serializers.ModelSerializer):
     sublayer = serializers.SlugRelatedField(
-        slug_field="name", queryset=SubLayer.objects.all()
+        slug_field="reference", queryset=SubLayer.objects.all()
     )
     name = serializers.CharField(
     )

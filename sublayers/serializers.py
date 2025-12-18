@@ -7,7 +7,7 @@ from layers.models import Layer
 
 class SubLayerSerializer(serializers.ModelSerializer):
     layer = serializers.SlugRelatedField(
-        queryset=Layer.objects.all(), slug_field="name"
+        queryset=Layer.objects.all(), slug_field="reference"
     )
     name = serializers.CharField()
 
