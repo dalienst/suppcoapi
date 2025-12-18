@@ -12,9 +12,7 @@ from products.models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
-    company = serializers.SlugRelatedField(
-        slug_field="identity", queryset=Company.objects.all()
-    )
+    company = serializers.CharField(source="user.company.name", read_only=True)
     branch = serializers.SlugRelatedField(
         slug_field="identity", queryset=Branch.objects.all(), required=False
     )
@@ -54,3 +52,13 @@ class ProductSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        try:
+            company = user.company
+        except Company.DoesNotExist:
+            raise serializers.ValidationError("You are not a company owner")
+
+        return Product.objects.create(company=company, **validated_data)
