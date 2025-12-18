@@ -5,7 +5,9 @@ from inventory.models import Inventory
 
 
 class Layer(UniversalIdModel, TimeStampedModel, ReferenceModel):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(
+        max_length=255,
+    )
     inventory = models.ForeignKey(
         Inventory, on_delete=models.CASCADE, related_name="layers"
     )
@@ -14,6 +16,12 @@ class Layer(UniversalIdModel, TimeStampedModel, ReferenceModel):
         verbose_name = "Layer"
         verbose_name_plural = "Layers"
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "inventory"],
+                name="unique_layer_name_per_inventory",
+            )
+        ]
 
     def __str__(self):
         return self.name

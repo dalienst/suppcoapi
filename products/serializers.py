@@ -22,16 +22,16 @@ class ProductSerializer(serializers.ModelSerializer):
         slug_field="identity", queryset=Site.objects.all(), required=False
     )
     layer = serializers.SlugRelatedField(
-        slug_field="name", queryset=Layer.objects.all(), required=False
+        slug_field="reference", queryset=Layer.objects.all(), required=False
     )
     sublayer = serializers.SlugRelatedField(
-        slug_field="name", queryset=SubLayer.objects.all(), required=False
+        slug_field="reference", queryset=SubLayer.objects.all(), required=False
     )
     sublayeritem = serializers.SlugRelatedField(
-        slug_field="name", queryset=SublayerItem.objects.all(), required=False
+        slug_field="reference", queryset=SublayerItem.objects.all(), required=False
     )
     bracket = serializers.SlugRelatedField(
-        slug_field="name", queryset=Bracket.objects.all(), required=False
+        slug_field="reference", queryset=Bracket.objects.all(), required=False
     )
     image = serializers.ImageField(use_url=True, required=False)
 

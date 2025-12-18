@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueTogetherValidator
 
 from sublayeritems.models import SublayerItem
 from sublayers.models import SubLayer
@@ -10,7 +10,6 @@ class SublayerItemSerializer(serializers.ModelSerializer):
         slug_field="name", queryset=SubLayer.objects.all()
     )
     name = serializers.CharField(
-        validators=[UniqueValidator(queryset=SublayerItem.objects.all())]
     )
 
     class Meta:
@@ -22,3 +21,10 @@ class SublayerItemSerializer(serializers.ModelSerializer):
             "updated_at",
             "reference",
         )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=SublayerItem.objects.all(),
+                fields=["name", "sublayer"],
+                message="Sublayer Item with this name already exists in this sublayer.",
+            )
+        ]
