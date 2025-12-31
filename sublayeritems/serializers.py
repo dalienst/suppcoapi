@@ -3,6 +3,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from sublayeritems.models import SublayerItem
 from sublayers.models import SubLayer
+from brackets.serializers import BracketSerializer
 
 
 class SublayerItemSerializer(serializers.ModelSerializer):
@@ -11,6 +12,7 @@ class SublayerItemSerializer(serializers.ModelSerializer):
     )
     name = serializers.CharField(
     )
+    brackets = BracketSerializer(many=True, read_only=True)
 
     class Meta:
         model = SublayerItem
@@ -20,6 +22,7 @@ class SublayerItemSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "brackets",
         )
         validators = [
             UniqueTogetherValidator(
