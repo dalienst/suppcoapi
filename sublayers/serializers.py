@@ -3,6 +3,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from sublayers.models import SubLayer
 from layers.models import Layer
+from sublayeritems.serializers import SublayerItemSerializer
 
 
 class SubLayerSerializer(serializers.ModelSerializer):
@@ -10,6 +11,7 @@ class SubLayerSerializer(serializers.ModelSerializer):
         queryset=Layer.objects.all(), slug_field="reference"
     )
     name = serializers.CharField()
+    sublayeritems = SublayerItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = SubLayer
@@ -19,6 +21,7 @@ class SubLayerSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "sublayeritems",
         )
         validators = [
             UniqueTogetherValidator(

@@ -6,7 +6,7 @@ from layers.serializers import LayerSerializer
 
 
 class LayerListCreateView(generics.ListCreateAPIView):
-    queryset = Layer.objects.all()
+    queryset = Layer.objects.all().prefetch_related("sublayers")
     serializer_class = LayerSerializer
     permission_classes = [
         IsAuthenticated,
@@ -14,7 +14,7 @@ class LayerListCreateView(generics.ListCreateAPIView):
 
 
 class LayerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Layer.objects.all()
+    queryset = Layer.objects.all().prefetch_related("sublayers")
     serializer_class = LayerSerializer
     permission_classes = [
         IsAuthenticated,

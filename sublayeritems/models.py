@@ -6,7 +6,7 @@ from sublayers.models import SubLayer
 
 class SublayerItem(TimeStampedModel, ReferenceModel, UniversalIdModel):
     sublayer = models.ForeignKey(
-        SubLayer, on_delete=models.CASCADE, related_name="sublayer_items"
+        SubLayer, on_delete=models.CASCADE, related_name="sublayeritems"
     )
     name = models.CharField(
         max_length=255,
