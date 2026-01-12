@@ -1,11 +1,18 @@
 from django.urls import path
 
-from inventory.views import InventoryListCreateView, InventoryDetailView
+from inventory.views import (
+    InventoryListCreateView,
+    InventoryDetailView,
+    InventoryListView,
+)
 
 app_name = "inventory"
 
 urlpatterns = [
-    path("", InventoryListCreateView.as_view(), name="inventory-list-create"),
+    path("", InventoryListView.as_view(), name="inventory-list"),
+    path(
+        "list-create/", InventoryListCreateView.as_view(), name="inventory-list-create"
+    ),
     path(
         "<str:inventory_code>/",
         InventoryDetailView.as_view(),
