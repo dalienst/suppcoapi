@@ -3,6 +3,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from inventory.models import Inventory
 from companies.models import Company
+from layers.serializers import LayerSerializer
 
 
 class InventorySerializer(serializers.ModelSerializer):
@@ -11,6 +12,7 @@ class InventorySerializer(serializers.ModelSerializer):
         queryset=Company.objects.all(), slug_field="name"
     )
     user = serializers.CharField(source="user.username", read_only=True)
+    layers = LayerSerializer(many=True, read_only=True)
 
     class Meta:
         model = Inventory
@@ -24,6 +26,7 @@ class InventorySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "layers",
         )
         validators = [
             UniqueTogetherValidator(

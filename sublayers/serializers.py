@@ -12,6 +12,7 @@ class SubLayerSerializer(serializers.ModelSerializer):
     )
     name = serializers.CharField()
     sublayeritems = SublayerItemSerializer(many=True, read_only=True)
+    layer_details = serializers.SerializerMethodField()
 
     class Meta:
         model = SubLayer
@@ -21,6 +22,7 @@ class SubLayerSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "layer_details",
             "sublayeritems",
         )
         validators = [
@@ -30,3 +32,8 @@ class SubLayerSerializer(serializers.ModelSerializer):
                 message="SubLayer with this name already exists in this layer.",
             )
         ]
+
+    def get_layer_details(self, obj):
+        return {
+            "name": obj.layer.name,
+        }

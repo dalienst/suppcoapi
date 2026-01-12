@@ -10,9 +10,9 @@ class SublayerItemSerializer(serializers.ModelSerializer):
     sublayer = serializers.SlugRelatedField(
         slug_field="reference", queryset=SubLayer.objects.all()
     )
-    name = serializers.CharField(
-    )
+    name = serializers.CharField()
     brackets = BracketSerializer(many=True, read_only=True)
+    sublayer_details = serializers.SerializerMethodField()
 
     class Meta:
         model = SublayerItem
@@ -22,6 +22,7 @@ class SublayerItemSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "sublayer_details",
             "brackets",
         )
         validators = [
@@ -31,3 +32,8 @@ class SublayerItemSerializer(serializers.ModelSerializer):
                 message="Sublayer Item with this name already exists in this sublayer.",
             )
         ]
+
+    def get_sublayer_details(self, obj):
+        return {
+            "name": obj.sublayer.name,
+        }
