@@ -6,6 +6,13 @@ from brackets.models import Bracket
 from brackets.serializers import BracketSerializer
 
 
+class BracketListView(generics.ListAPIView):
+    queryset = Bracket.objects.all()
+    serializer_class = BracketSerializer
+    permission_classes = [
+        AllowAny,
+    ]
+
 class BracketListCreateView(generics.ListCreateAPIView):
     queryset = Bracket.objects.all()
     serializer_class = BracketSerializer
