@@ -13,6 +13,7 @@ class InventorySerializer(serializers.ModelSerializer):
     )
     user = serializers.CharField(source="user.username", read_only=True)
     layers = LayerSerializer(many=True, read_only=True)
+    user_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Inventory
@@ -26,6 +27,7 @@ class InventorySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "reference",
+            "user_details",
             "layers",
         )
         validators = [
@@ -35,3 +37,11 @@ class InventorySerializer(serializers.ModelSerializer):
                 message="Inventory with this name already exists in this company.",
             )
         ]
+
+    def get_user_details(self, obj):
+        return {
+            "username": obj.user.username,
+            "email": obj.user.email,
+            "reference": obj.user.reference,
+            "account_type": obj.user.account_type,
+        }

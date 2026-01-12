@@ -1,10 +1,16 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from accounts.abstracts import TimeStampedModel, ReferenceModel, UniversalIdModel
 from sublayers.models import SubLayer
 
+User = get_user_model()
+
 
 class SublayerItem(TimeStampedModel, ReferenceModel, UniversalIdModel):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sublayeritems"
+    )
     sublayer = models.ForeignKey(
         SubLayer, on_delete=models.CASCADE, related_name="sublayeritems"
     )
