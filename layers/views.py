@@ -1,8 +1,16 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from layers.models import Layer
 from layers.serializers import LayerSerializer
+
+
+class LayerListView(generics.ListAPIView):
+    queryset = Layer.objects.all().prefetch_related("sublayers")
+    serializer_class = LayerSerializer
+    permission_classes = [
+        AllowAny,
+    ]
 
 
 class LayerListCreateView(generics.ListCreateAPIView):
@@ -11,6 +19,9 @@ class LayerListCreateView(generics.ListCreateAPIView):
     permission_classes = [
         IsAuthenticated,
     ]
+
+    def get_queryset(self):
+        return Layer.objects.filter(user=self.request.user)
 
 
 class LayerDetailView(generics.RetrieveUpdateDestroyAPIView):

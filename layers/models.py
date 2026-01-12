@@ -1,10 +1,14 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from accounts.abstracts import TimeStampedModel, UniversalIdModel, ReferenceModel
 from inventory.models import Inventory
 
+User = get_user_model()
+
 
 class Layer(UniversalIdModel, TimeStampedModel, ReferenceModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="layers")
     name = models.CharField(
         max_length=255,
     )

@@ -1,11 +1,16 @@
 from django.urls import path
 
-from sublayers.views import SubLayerListCreateView, SubLayerRetrieveUpdateDestroyView
+from sublayers.views import (
+    SubLayerListCreateView,
+    SubLayerRetrieveUpdateDestroyView,
+    SubLayerListView,
+)
 
 app_name = "sublayers"
 
 urlpatterns = [
-    path("", SubLayerListCreateView.as_view(), name="sublayer-list-create"),
+    path("", SubLayerListView.as_view(), name="sublayer-list"),
+    path("list-create/", SubLayerListCreateView.as_view(), name="sublayer-list-create"),
     path(
         "<str:reference>/",
         SubLayerRetrieveUpdateDestroyView.as_view(),
