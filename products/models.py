@@ -11,6 +11,7 @@ from companies.models import Company
 from branches.models import Branch
 from sites.models import Site
 from products.utils import generate_sku
+from paymentoptions.models import PaymentOption
 
 User = get_user_model()
 
@@ -65,9 +66,21 @@ class Product(TimeStampedModel, UniversalIdModel, ReferenceModel):
     # key fields
     source_location = models.CharField(max_length=255, null=True, blank=True)
     product_name = models.CharField(max_length=255, null=True, blank=True)
-    specifications = models.JSONField(null=True, blank=True)
+    specifications = models.JSONField(
+        null=True,
+        blank=True,
+    )
     image = CloudinaryField("products", blank=True, null=True)
-    sku = models.CharField(max_length=255, default=generate_sku, unique=True, editable=False)
+    sku = models.CharField(
+        max_length=255, default=generate_sku, unique=True, editable=False
+    )
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    unit = models.CharField(max_length=255, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # payment options
+    payment_options = models.ManyToManyField(
+        PaymentOption, related_name="products", blank=True
+    )
 
     class Meta:
         verbose_name = "Product"
@@ -75,4 +88,4 @@ class Product(TimeStampedModel, UniversalIdModel, ReferenceModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.product_name
+        return self.product_name or "Unnamed Product"

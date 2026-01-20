@@ -7,5 +7,3 @@ def generate_sku():
     letters = string.ascii_uppercase
     numbers = string.digits
     return "".join(random.choices(letters, k=6)) + "".join(random.choices(numbers, k=8))
-
-print(generate_sku())

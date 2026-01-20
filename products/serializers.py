@@ -8,6 +8,7 @@ from sublayers.models import SubLayer
 from sublayeritems.models import SublayerItem
 from brackets.models import Bracket
 from products.models import Product
+from paymentoptions.models import PaymentOption
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -32,6 +33,12 @@ class ProductSerializer(serializers.ModelSerializer):
         slug_field="reference", queryset=Bracket.objects.all(), required=False
     )
     image = serializers.ImageField(use_url=True, required=False)
+    payment_options = serializers.SlugRelatedField(
+        slug_field="reference",
+        queryset=PaymentOption.objects.all(),
+        required=False,
+        many=True,
+    )
 
     class Meta:
         model = Product
@@ -49,6 +56,9 @@ class ProductSerializer(serializers.ModelSerializer):
             "specifications",
             "image",
             "sku",
+            "quantity",
+            "unit",
+            "price",
             "reference",
             "created_at",
             "updated_at",

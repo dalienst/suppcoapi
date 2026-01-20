@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "plumbing",
     "electricity",
     "buildersplant",
+    # Payment and ordering apps
+    "paymentoptions",
 ]
 
 MIDDLEWARE = [
