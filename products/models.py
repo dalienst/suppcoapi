@@ -10,6 +10,7 @@ from brackets.models import Bracket
 from companies.models import Company
 from branches.models import Branch
 from sites.models import Site
+from products.utils import generate_sku
 
 User = get_user_model()
 
@@ -66,6 +67,7 @@ class Product(TimeStampedModel, UniversalIdModel, ReferenceModel):
     product_name = models.CharField(max_length=255, null=True, blank=True)
     specifications = models.JSONField(null=True, blank=True)
     image = CloudinaryField("products", blank=True, null=True)
+    sku = models.CharField(max_length=255, default=generate_sku, unique=True, editable=False)
 
     class Meta:
         verbose_name = "Product"

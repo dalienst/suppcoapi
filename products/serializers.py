@@ -48,6 +48,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_name",
             "specifications",
             "image",
+            "sku",
             "reference",
             "created_at",
             "updated_at",
