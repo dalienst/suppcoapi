@@ -22,4 +22,6 @@ urlpatterns = [
     path("api/v1/plumbing/", include("plumbing.urls")),
     path("api/v1/electricity/", include("electricity.urls")),
     path("api/v1/buildersplant/", include("buildersplant.urls")),
+    # Payment and ordering
+    path("api/v1/paymentoptions/", include("paymentoptions.urls")),
 ]
