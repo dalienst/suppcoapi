@@ -8,6 +8,10 @@ User = get_user_model()
 
 
 class PaymentOption(ReferenceModel, TimeStampedModel, UniversalIdModel):
+    """
+    A product can have more than one payment option
+    """
+
     PAYMENT_TYPE_CHOICES = (
         ("FIXED", "FIXED"),
         ("PAYMENT_ON_DELIVERY", "PAYMENT_ON_DELIVERY"),
