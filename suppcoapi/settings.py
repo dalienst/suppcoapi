@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     # Payment and ordering apps
     "paymentoptions",
     "paymentplans",
+    "orders",
+    "orderitems",
 ]
 
 MIDDLEWARE = [
