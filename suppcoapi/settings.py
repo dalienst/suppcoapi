@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "buildersplant",
     # Payment and ordering apps
     "paymentoptions",
+    "paymentplans",
 ]
 
 MIDDLEWARE = [
