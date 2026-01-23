@@ -167,3 +167,35 @@ This document outlines the available API endpoints for the SUPPCO application. A
 | `/` | `BuilderPlantListView` | List builders plant items |
 | `create/` | `BuilderPlantListCreateView` | Create builders plant items |
 | `<str:reference>/` | `BuilderPlantRetrieveUpdateDestroyView` | Builders plant item details |
+
+## Payment Options
+**Base URL:** `api/v1/paymentoptions/`
+
+| Endpoint | View | Description |
+|----------|------|-------------|
+| `/` | `PaymentOptionListCreateView` | List or create payment options |
+| `<str:reference>/` | `PaymentOptionDetailView` | Payment option details |
+
+## Payment Plans
+**Base URL:** `api/v1/paymentplans/`
+
+| Endpoint | View | Description |
+|----------|------|-------------|
+| `/` | `PaymentPlanListCreateView` | List or create payment plans |
+| `<str:reference>/` | `PaymentPlanDetailView` | Payment plan details |
+
+## Orders
+**Base URL:** `api/v1/orders/`
+
+| Endpoint | View | Description |
+|----------|------|-------------|
+| `/` | `OrderListCreateView` | List or create orders |
+| `<str:reference>/` | `OrderRetrieveUpdateDestroyView` | Order details |
+
+## Order Items
+**Base URL:** `api/v1/orderitems/`
+
+| Endpoint | View | Description |
+|----------|------|-------------|
+| `/` | `OrderItemListCreateView` | List order items |
+| `<str:reference>/` | `OrderItemRetrieveUpdateDestroyView` | Order item details |
