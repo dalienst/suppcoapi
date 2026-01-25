@@ -62,6 +62,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "reference",
             "created_at",
             "updated_at",
+            "payment_options",
         )
 
     def create(self, validated_data):
