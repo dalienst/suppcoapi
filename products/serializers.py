@@ -67,10 +67,19 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
+        payment_options = validated_data.pop("payment_options", [])
 
         try:
             company = user.company
         except Company.DoesNotExist:
             raise serializers.ValidationError("You are not a company owner")
 
-        return Product.objects.create(company=company, **validated_data)
+        product = Product.objects.create(company=company, **validated_data)
+        product.payment_options.set(payment_options)
+        return product
+
+    def update(self, instance, validated_data):
+        payment_options = validated_data.pop("payment_options", None)
+        if payment_options is not None:
+            instance.payment_options.set(payment_options)
+        return super().update(instance, validated_data)
