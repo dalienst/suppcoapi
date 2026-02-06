@@ -27,13 +27,18 @@ class PaymentOptionSerializer(serializers.ModelSerializer):
             "reference",
             "user",
         ]
-        read_only_fields = [
-            "created_at",
-            "updated_at",
-            "reference",
-            "is_fixed",
-            "is_payment_on_delivery",
-            "is_split_50_50",
-            "is_flexible",
-            "user",
-        ]
+
+    def validate(self, attrs):
+        payment_type = attrs.get("payment_type")
+        min_deposit = attrs.get("min_deposit_percentage")
+
+        if payment_type == "FLEXIBLE":
+            if min_deposit is None:
+                raise serializers.ValidationError(
+                    {"min_deposit_percentage": "This field is required for FLEXIBLE payment type."}
+                )
+            if not (0 < min_deposit <= 100):
+                raise serializers.ValidationError(
+                    {"min_deposit_percentage": "Value must be between 0 and 100."}
+                )
+        return attrs
