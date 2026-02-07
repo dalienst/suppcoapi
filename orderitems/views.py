@@ -25,3 +25,5 @@ class OrderItemRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         # Users see items from their orders
         # TODO: Add logic for Suppliers to see items they need to fulfill
         return OrderItem.objects.filter(order__user=user)
+
+

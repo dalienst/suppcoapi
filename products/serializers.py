@@ -9,6 +9,7 @@ from sublayeritems.models import SublayerItem
 from brackets.models import Bracket
 from products.models import Product
 from paymentoptions.models import PaymentOption
+from paymentoptions.serializers import PaymentOptionSerializer
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -39,6 +40,10 @@ class ProductSerializer(serializers.ModelSerializer):
         required=False,
         many=True,
     )
+    payment_options_details = serializers.SerializerMethodField()
+
+    def get_payment_options_details(self, obj):
+        return PaymentOptionSerializer(obj.payment_options.all(), many=True).data
 
     class Meta:
         model = Product
@@ -63,6 +68,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "payment_options",
+            "payment_options_details",
         )
 
     def create(self, validated_data):

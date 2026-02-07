@@ -12,7 +12,14 @@ class OrderItemPaymentPlanSerializer(PaymentPlanSerializer):
     """
 
     class Meta(PaymentPlanSerializer.Meta):
-        fields = ("payment_option", "amount", "plan")
+        fields = (
+            "payment_option",
+            "amount",
+            "plan",
+            "deposit_amount",
+            "duration_months",
+        )
+        read_only_fields = ("amount", "plan")
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
