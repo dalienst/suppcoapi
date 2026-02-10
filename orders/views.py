@@ -92,6 +92,7 @@ class CheckoutView(APIView):
                 # Create Order
                 order = Order.objects.create(
                     user=user,
+                    company=first_item.product.company,
                     status="PLACED",
                     total_amount=0,
                 )
