@@ -38,10 +38,28 @@ class CartItemSerializer(serializers.ModelSerializer):
         deposit_amount = attrs.get("deposit_amount")
         duration_months = attrs.get("duration_months")
 
-        # 1. Product Stock Validation
+        if self.instance:
+            if not product:
+                product = self.instance.product
+            if not quantity:
+                quantity = self.instance.quantity
+            if not payment_option:
+                payment_option = self.instance.payment_option
+            if deposit_amount is None:
+                deposit_amount = self.instance.deposit_amount
+            # duration_months usually optional/nullable so we check if key exists or use instance?
+            # attrs.get returns None if missing. If we want to validate logic involving duration, we might need it.
+            if "duration_months" not in attrs:
+                duration_months = self.instance.duration_months
+        else:
+            # If creating new item and quantity is missing, default to 1 as per model
+            if not quantity:
+                quantity = 1
+
+        # 1. Product quantity Validation
         if product and quantity:
-            if product.stock < quantity:
-                raise serializers.ValidationError({"quantity": "Stock is not enough"})
+            if product.quantity < quantity:
+                raise serializers.ValidationError({"quantity": "quantity is not enough"})
 
         # 2. Payment Option Validation
         if payment_option and product:
@@ -55,21 +73,34 @@ class CartItemSerializer(serializers.ModelSerializer):
 
             # 3. Flexible Payment Validation
             if payment_option.is_flexible:
+                total_price = product.price * quantity
+                min_deposit = (
+                    payment_option.min_deposit_percentage / 100
+                ) * total_price
+                formatted_min_deposit = "{:,.2f}".format(min_deposit)
+                formatted_total_price = "{:,.2f}".format(total_price)
+
                 if deposit_amount is None:
                     raise serializers.ValidationError(
                         {
-                            "deposit_amount": "Deposit amount is required for Flexible plans."
+                            "deposit_amount": (
+                                f"Deposit amount is required for Flexible plans. "
+                                f"The minimum required is {formatted_min_deposit} "
+                                f"({payment_option.min_deposit_percentage}% of {formatted_total_price})."
+                            )
                         }
                     )
 
-                # Check min deposit percentage
-                min_deposit = (
-                    payment_option.min_deposit_percentage / 100
-                ) * product.price
                 if deposit_amount < min_deposit:
+                    formatted_min_deposit = "{:,.2f}".format(min_deposit)
+                    formatted_total_price = "{:,.2f}".format(total_price)
                     raise serializers.ValidationError(
                         {
-                            "deposit_amount": f"Minimum deposit is {min_deposit} ({payment_option.min_deposit_percentage}% of price)."
+                            "deposit_amount": (
+                                f"The minimum required deposit is {formatted_min_deposit} "
+                                f"({payment_option.min_deposit_percentage}% of the total price {formatted_total_price}). "
+                                f"You provided {deposit_amount}."
+                            )
                         }
                     )
 
@@ -77,9 +108,6 @@ class CartItemSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {"duration_months": "Duration must be at least 1 month."}
                     )
-
-        if not product and self.instance:
-            product = self.instance.product
 
         return attrs
 
