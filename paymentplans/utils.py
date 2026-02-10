@@ -84,3 +84,57 @@ def calculate_flexible_plan(total_amount, deposit_amount, months):
             )
 
     return plan
+
+
+def calculate_flexible_plan_by_amount(total_amount, deposit_amount, monthly_amount):
+    """
+    Generates a deposit entry and installments based on a fixed monthly amount.
+    """
+    plan = []
+
+    # 1. Deposit
+    if deposit_amount > 0:
+        plan.append(
+            {
+                "due_date": str(date.today()),
+                "amount": float(deposit_amount),
+                "description": "Deposit",
+                "status": "PENDING",
+            }
+        )
+
+    remaining_amount = total_amount - deposit_amount
+
+    if monthly_amount > 0 and remaining_amount > 0:
+        # Calculate number of months needed
+        import math
+
+        months = math.ceil(remaining_amount / monthly_amount)
+
+        running_total = Decimal("0.00")
+
+        for i in range(1, months + 1):
+            is_last = i == months
+            due_date = date.today() + relativedelta(months=i)
+
+            if is_last:
+                amount = remaining_amount - running_total
+            else:
+                amount = monthly_amount
+
+            # safeguard against overpayment in loop logic, though ceil handles count
+            if amount <= 0:
+                break
+
+            running_total += amount
+
+            plan.append(
+                {
+                    "due_date": str(due_date),
+                    "amount": float(amount),
+                    "description": f"Installment {i}/{months}",
+                    "status": "PENDING",
+                }
+            )
+
+    return plan

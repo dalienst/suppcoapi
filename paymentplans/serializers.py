@@ -7,6 +7,7 @@ from paymentplans.utils import (
     calculate_fixed_plan,
     calculate_split_plan,
     calculate_flexible_plan,
+    calculate_flexible_plan_by_amount,
 )
 
 
@@ -24,6 +25,9 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         max_digits=10, decimal_places=2, write_only=True, required=False
     )
     duration_months = serializers.IntegerField(write_only=True, required=False)
+    monthly_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, write_only=True, required=False
+    )
 
     class Meta:
         model = PaymentPlan
@@ -38,6 +42,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             "updated_at",
             "deposit_amount",
             "duration_months",
+            "monthly_amount",
         )
         read_only_fields = ("reference", "amount", "plan", "created_at", "updated_at")
 
@@ -76,14 +81,18 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
                     }
                 )
 
-            if not duration_months or duration_months < 1:
-                raise serializers.ValidationError(
-                    {"duration_months": "Duration must be at least 1 month."}
+            if monthly_amount and monthly_amount > 0:
+                attrs["plan"] = calculate_flexible_plan_by_amount(
+                    total_amount, deposit_amount, monthly_amount
                 )
-
-            attrs["plan"] = calculate_flexible_plan(
-                total_amount, deposit_amount, duration_months
-            )
+            elif duration_months and duration_months >= 1:
+                attrs["plan"] = calculate_flexible_plan(
+                    total_amount, deposit_amount, duration_months
+                )
+            else:
+                raise serializers.ValidationError(
+                    "For Flexible plans, you must provide either a duration (in months) or a monthly installment amount."
+                )
 
         return attrs
 
@@ -91,4 +100,5 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         # Remove write-only fields before creation
         validated_data.pop("deposit_amount", None)
         validated_data.pop("duration_months", None)
+        validated_data.pop("monthly_amount", None)
         return super().create(validated_data)

@@ -27,6 +27,13 @@ class CartItem(TimeStampedModel, UniversalIdModel, ReferenceModel):
     duration_months = models.IntegerField(
         null=True, blank=True, help_text="User input for Flexible duration"
     )
+    monthly_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="User input for Flexible monthly amount (alternative to duration)",
+    )
 
     def __str__(self):
         return f"{self.quantity} x {self.product.product_name} in {self.cart}"

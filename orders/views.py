@@ -107,6 +107,7 @@ class CheckoutView(APIView):
                         "payment_option": item.payment_option.reference,
                         "deposit_amount": item.deposit_amount,
                         "duration_months": item.duration_months,
+                        "monthly_amount": item.monthly_amount,
                     }
 
                     pp_context = {"request": request}

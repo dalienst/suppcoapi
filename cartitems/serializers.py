@@ -4,6 +4,10 @@ from cartitems.models import CartItem
 from products.models import Product
 from cart.models import Cart
 from paymentoptions.models import PaymentOption
+from paymentplans.utils import (
+    calculate_flexible_plan,
+    calculate_flexible_plan_by_amount,
+)
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -15,6 +19,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     payment_option = serializers.SlugRelatedField(
         slug_field="reference", queryset=PaymentOption.objects.all()
     )
+    projections = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
@@ -26,6 +31,8 @@ class CartItemSerializer(serializers.ModelSerializer):
             "payment_option",
             "deposit_amount",
             "duration_months",
+            "monthly_amount",
+            "projections",
             "created_at",
             "updated_at",
             "reference",
@@ -37,6 +44,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         payment_option = attrs.get("payment_option")
         deposit_amount = attrs.get("deposit_amount")
         duration_months = attrs.get("duration_months")
+        monthly_amount = attrs.get("monthly_amount")
 
         if self.instance:
             if not product:
@@ -51,6 +59,8 @@ class CartItemSerializer(serializers.ModelSerializer):
             # attrs.get returns None if missing. If we want to validate logic involving duration, we might need it.
             if "duration_months" not in attrs:
                 duration_months = self.instance.duration_months
+            if "monthly_amount" not in attrs:
+                monthly_amount = self.instance.monthly_amount
         else:
             # If creating new item and quantity is missing, default to 1 as per model
             if not quantity:
@@ -59,7 +69,9 @@ class CartItemSerializer(serializers.ModelSerializer):
         # 1. Product quantity Validation
         if product and quantity:
             if product.quantity < quantity:
-                raise serializers.ValidationError({"quantity": "quantity is not enough"})
+                raise serializers.ValidationError(
+                    {"quantity": "quantity is not enough"}
+                )
 
         # 2. Payment Option Validation
         if payment_option and product:
@@ -104,12 +116,40 @@ class CartItemSerializer(serializers.ModelSerializer):
                         }
                     )
 
-                if not duration_months or duration_months < 1:
+                has_duration = duration_months and duration_months >= 1
+                has_monthly_amount = monthly_amount and monthly_amount > 0
+
+                if not has_duration and not has_monthly_amount:
                     raise serializers.ValidationError(
-                        {"duration_months": "Duration must be at least 1 month."}
+                        "For Flexible plans, you must provide either a duration (in months) or a monthly installment amount."
+                    )
+
+                remaining_after_deposit = (product.price * quantity) - deposit_amount
+                if has_monthly_amount and monthly_amount > remaining_after_deposit:
+                    raise serializers.ValidationError(
+                        {
+                            "monthly_amount": "Monthly amount cannot be greater than the remaining balance."
+                        }
                     )
 
         return attrs
+
+    def get_projections(self, obj):
+        if not obj.payment_option or not obj.payment_option.is_flexible:
+            return None
+
+        # Calculate total based on current quantity
+        total_amount = obj.product.price * obj.quantity
+        deposit = obj.deposit_amount or 0
+
+        if obj.monthly_amount and obj.monthly_amount > 0:
+            return calculate_flexible_plan_by_amount(
+                total_amount, deposit, obj.monthly_amount
+            )
+        elif obj.duration_months and obj.duration_months > 0:
+            return calculate_flexible_plan(total_amount, deposit, obj.duration_months)
+
+        return None
 
     def create(self, validated_data):
         cart = Cart.objects.get(user=self.context["request"].user)
@@ -139,6 +179,9 @@ class CartItemSerializer(serializers.ModelSerializer):
             cart_item.duration_months = validated_data.get(
                 "duration_months", cart_item.duration_months
             )
+            cart_item.monthly_amount = validated_data.get(
+                "monthly_amount", cart_item.monthly_amount
+            )
             cart_item.save()
         else:
             cart_item = CartItem.objects.create(**validated_data)
@@ -155,6 +198,9 @@ class CartItemSerializer(serializers.ModelSerializer):
         )
         instance.duration_months = validated_data.get(
             "duration_months", instance.duration_months
+        )
+        instance.monthly_amount = validated_data.get(
+            "monthly_amount", instance.monthly_amount
         )
 
         if instance.quantity <= 0:

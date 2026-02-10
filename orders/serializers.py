@@ -60,6 +60,7 @@ class OrderSerializer(serializers.ModelSerializer):
                         "payment_option": payment_plan_data["payment_option"].reference,
                         "deposit_amount": payment_plan_data.get("deposit_amount"),
                         "duration_months": payment_plan_data.get("duration_months"),
+                        "monthly_amount": payment_plan_data.get("monthly_amount"),
                     },
                     context=self.context,
                 )
