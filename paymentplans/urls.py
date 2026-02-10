@@ -5,6 +5,7 @@ from paymentplans.views import (
     PaymentPlanRetrieveUpdateDestroyView,
 )
 
+app_name = "paymentplans"
 
 urlpatterns = [
     path("", PaymentPlanListCreateView.as_view()),

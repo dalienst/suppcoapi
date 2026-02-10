@@ -18,7 +18,7 @@ psycopg2-binary = "2.9.10"
 python-decouple = "3.8"
 resend = "2.13.1"
 whitenoise = "6.10.0"
-python-dateutil = "*"
+python-dateutil = "2.9.0.post0"
 
 [dev-packages]
 
