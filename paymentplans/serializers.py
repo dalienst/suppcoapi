@@ -24,7 +24,9 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
     deposit_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, write_only=True, required=False
     )
-    duration_months = serializers.IntegerField(write_only=True, required=False)
+    duration_months = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True
+    )
     monthly_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, write_only=True, required=False
     )
@@ -51,6 +53,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         payment_option = attrs.get("payment_option")
         deposit_amount = attrs.get("deposit_amount", Decimal("0.00"))
         duration_months = attrs.get("duration_months", 0)
+        monthly_amount = attrs.get("monthly_amount", Decimal("0.00"))
 
         # Basic Validation
         if not product or not payment_option:

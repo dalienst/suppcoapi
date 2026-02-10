@@ -20,6 +20,10 @@ class CartItemSerializer(serializers.ModelSerializer):
     payment_option = serializers.SlugRelatedField(
         slug_field="reference", queryset=PaymentOption.objects.all()
     )
+    product_reference = serializers.CharField(read_only=True, source="product.reference")
+    product_name = serializers.CharField(read_only=True, source="product.product_name")
+    product_sku = serializers.CharField(read_only=True, source="product.sku")
+    product_company = serializers.CharField(read_only=True, source="product.company.name")
     projections = serializers.SerializerMethodField()
 
     class Meta:
@@ -27,7 +31,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = (
             "cart",
             "product",
-            "quantity",
+            "product_reference",
+            "product_name",
+            "product_sku",
+            "product_company",
             "quantity",
             "sub_total",
             "payable_amount",

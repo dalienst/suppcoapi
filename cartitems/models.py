@@ -47,3 +47,8 @@ class CartItem(TimeStampedModel, UniversalIdModel, ReferenceModel):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.product_name} in {self.cart}"
+
+    class Meta:
+        verbose_name = "Cart Item"
+        verbose_name_plural = "Cart Items"
+        ordering = ["-created_at"]
