@@ -4,6 +4,7 @@ from orders.models import Order
 from orderitems.models import OrderItem
 from orderitems.serializers import OrderItemSerializer
 from paymentplans.models import PaymentPlan
+from paymentplans.serializers import PaymentPlanSerializer
 from products.models import Product
 
 
@@ -33,7 +34,7 @@ class OrderSerializer(serializers.ModelSerializer):
         for item in items_data:
             product = item["product"]
             quantity = item["quantity"]
-            # Assuming product price is the source of truth
+            # ToDo: Handle price logic/discounts here if any
             total_amount += product.price * quantity
 
         with transaction.atomic():
@@ -45,19 +46,26 @@ class OrderSerializer(serializers.ModelSerializer):
                 payment_plan_data = item_data.pop("payment_plan")
                 product = item_data["product"]
 
-                # Create PaymentPlan
-                # We need to inject user and product into payment_plan_data
-                # PaymentPlanSerializer expects 'product' (sku) and 'payment_option' (reference)
-                # But here 'payment_plan_data' is validated data from PaymentPlanSerializer
-                # which means the slug fields are already converted to model instances.
+                # We need to construct the data to pass to PaymentPlanSerializer
+                # item_data['product'] is a model instance because of SlugRelatedField in OrderItemSerializer
+                # But PaymentPlanSerializer expects data roughly compliant with its fields or we can call save directly if we instantiate validation logic manually?
+                # Better approach: Manually call validation logic or re-use serializer?
+                # Using serializer is cleaner but we need to re-construct input data or manually call internal methods.
+                # Simplest: use the model fields and the utils directly, OR instantiate the serializer with context.
 
-                payment_plan = PaymentPlan.objects.create(
-                    user=user,
-                    product=product,  # Product instance from outer item_data
-                    payment_option=payment_plan_data["payment_option"],
-                    amount=payment_plan_data["amount"],
-                    plan=payment_plan_data.get("plan"),
+                # Let's instantiate the serializer to leverage the validation logic we just wrote
+                pp_serializer = PaymentPlanSerializer(
+                    data={
+                        "product": product.sku,
+                        "payment_option": payment_plan_data["payment_option"].reference,
+                        "deposit_amount": payment_plan_data.get("deposit_amount"),
+                        "duration_months": payment_plan_data.get("duration_months"),
+                        "monthly_amount": payment_plan_data.get("monthly_amount"),
+                    },
+                    context=self.context,
                 )
+                pp_serializer.is_valid(raise_exception=True)
+                payment_plan = pp_serializer.save(user=user, product=product)
 
                 OrderItem.objects.create(
                     order=order,

@@ -1,0 +1,257 @@
+from rest_framework import serializers
+from decimal import Decimal
+
+from cartitems.models import CartItem
+from products.models import Product
+from cart.models import Cart
+from paymentoptions.models import PaymentOption
+from paymentplans.utils import (
+    calculate_flexible_plan,
+    calculate_flexible_plan_by_amount,
+)
+from paymentoptions.serializers import PaymentOptionSerializer
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(
+        slug_field="reference", queryset=Product.objects.all()
+    )
+    cart = serializers.CharField(read_only=True, source="cart.reference")
+    sub_total = serializers.ReadOnlyField()
+    payable_amount = serializers.ReadOnlyField()
+    total_interest = serializers.SerializerMethodField()
+    payment_option = serializers.SlugRelatedField(
+        slug_field="reference", queryset=PaymentOption.objects.all()
+    )
+    product_reference = serializers.CharField(
+        read_only=True, source="product.reference"
+    )
+    product_name = serializers.CharField(read_only=True, source="product.product_name")
+    product_sku = serializers.CharField(read_only=True, source="product.sku")
+    product_company = serializers.CharField(
+        read_only=True, source="product.company.name"
+    )
+    payment_option_details = serializers.SerializerMethodField()
+    projections = serializers.SerializerMethodField()
+
+
+    def get_payment_option_details(self, obj):
+        return PaymentOptionSerializer(obj.payment_option, many=False).data
+
+    class Meta:
+        model = CartItem
+        fields = (
+            "cart",
+            "product",
+            "product_reference",
+            "product_name",
+            "product_sku",
+            "product_company",
+            "quantity",
+            "sub_total",
+            "payable_amount",
+            "total_interest",
+            "deposit_amount",
+            "duration_months",
+            "monthly_amount",
+            "created_at",
+            "updated_at",
+            "reference",
+            "payment_option",
+            "payment_option_details",
+            "projections",
+        )
+
+    def validate(self, attrs):
+        product = attrs.get("product")
+        quantity = attrs.get("quantity")
+        payment_option = attrs.get("payment_option")
+        deposit_amount = attrs.get("deposit_amount")
+        duration_months = attrs.get("duration_months")
+        monthly_amount = attrs.get("monthly_amount")
+
+        if self.instance:
+            if not product:
+                product = self.instance.product
+            if not quantity:
+                quantity = self.instance.quantity
+            if not payment_option:
+                payment_option = self.instance.payment_option
+            if deposit_amount is None:
+                deposit_amount = self.instance.deposit_amount
+            # duration_months usually optional/nullable so we check if key exists or use instance?
+            # attrs.get returns None if missing. If we want to validate logic involving duration, we might need it.
+            if "duration_months" not in attrs:
+                duration_months = self.instance.duration_months
+            if "monthly_amount" not in attrs:
+                monthly_amount = self.instance.monthly_amount
+        else:
+            # If creating new item and quantity is missing, default to 1 as per model
+            if not quantity:
+                quantity = 1
+                attrs["quantity"] = 1
+
+        # 1. Product quantity Validation
+        if product and quantity:
+            if product.quantity < quantity:
+                raise serializers.ValidationError(
+                    {"quantity": "quantity is not enough"}
+                )
+
+        # 2. Payment Option Validation
+        if payment_option and product:
+            # Check if this payment option is allowed for this product
+            if not product.payment_options.filter(id=payment_option.id).exists():
+                raise serializers.ValidationError(
+                    {
+                        "payment_option": f"Payment option '{payment_option.name}' is not available for this product."
+                    }
+                )
+
+            # 3. Flexible Payment Validation
+            if payment_option.is_flexible:
+                total_price = product.price * quantity
+                min_deposit = (
+                    payment_option.min_deposit_percentage / 100
+                ) * total_price
+                formatted_min_deposit = "{:,.2f}".format(min_deposit)
+                formatted_total_price = "{:,.2f}".format(total_price)
+
+                if deposit_amount is None:
+                    # Automate deposit amount if not provided
+                    deposit_amount = min_deposit
+                    # Update attrs so it gets saved
+                    attrs["deposit_amount"] = deposit_amount
+
+                # We still perform the check in case the user provided a value that is too low
+                # (If we just set it above, this check will pass naturally)
+
+                if deposit_amount < min_deposit:
+                    formatted_min_deposit = "{:,.2f}".format(min_deposit)
+                    formatted_total_price = "{:,.2f}".format(total_price)
+                    raise serializers.ValidationError(
+                        {
+                            "deposit_amount": (
+                                f"The minimum required deposit is {formatted_min_deposit} "
+                                f"({payment_option.min_deposit_percentage}% of the total price {formatted_total_price}). "
+                                f"You provided {deposit_amount}."
+                            )
+                        }
+                    )
+
+                has_duration = duration_months and duration_months >= 1
+                has_monthly_amount = monthly_amount and monthly_amount > 0
+
+                if not has_duration and not has_monthly_amount:
+                    raise serializers.ValidationError(
+                        "For Flexible plans, you must provide either a duration (in months) or a monthly installment amount."
+                    )
+
+                remaining_after_deposit = (product.price * quantity) - deposit_amount
+                if has_monthly_amount and monthly_amount > remaining_after_deposit:
+                    raise serializers.ValidationError(
+                        {
+                            "monthly_amount": "Monthly amount cannot be greater than the remaining balance."
+                        }
+                    )
+
+        return attrs
+
+    def get_total_interest(self, obj):
+        if not obj.payment_option or not obj.payment_option.is_flexible:
+            return 0
+
+        projections = self.get_projections(obj)
+        if not projections:
+            return 0
+
+        total_payable = sum(Decimal(str(item["amount"])) for item in projections)
+        principal = obj.product.price * obj.quantity
+        interest = total_payable - principal
+        return max(interest, 0)
+
+    def get_projections(self, obj):
+        if not obj.payment_option or not obj.payment_option.is_flexible:
+            return None
+
+        # Calculate total based on current quantity
+        total_amount = obj.product.price * obj.quantity
+        deposit = obj.deposit_amount or 0
+
+        if obj.monthly_amount and obj.monthly_amount > 0:
+            interest_rate = obj.payment_option.interest_rate or 0
+            return calculate_flexible_plan_by_amount(
+                total_amount, deposit, obj.monthly_amount, interest_rate
+            )
+        elif obj.duration_months and obj.duration_months > 0:
+            interest_rate = obj.payment_option.interest_rate or 0
+            return calculate_flexible_plan(
+                total_amount, deposit, obj.duration_months, interest_rate
+            )
+
+        return None
+
+    def create(self, validated_data):
+        cart = Cart.objects.get(user=self.context["request"].user)
+        validated_data["cart"] = cart
+
+        # check if the product with same payment option is already in the cart
+        # (Different payment options might imply separate cart items in some logic,
+        # but user likely wants to update existing item if just changing quantity?
+        # Let's assume distinct line items if payment terms differ?
+        # For simplicity, if product exists in cart, we update it, overwriting old payment terms
+        # UNLESS we want to support multiple configs for same product.
+        # Given "suppco" context, let's treat (product) as unique key in cart for now.)
+
+        cart_item = CartItem.objects.filter(
+            cart=cart, product=validated_data["product"]
+        ).first()
+
+        if cart_item:
+            # update quantity and payment terms
+            cart_item.quantity += validated_data["quantity"]
+
+            # For deposit and monthly amount, we should ADD the new amounts to the existing ones
+            # as the user is "adding more" of the same deal.
+            new_deposit = validated_data.get("deposit_amount")
+            if new_deposit is not None:
+                # If existing is None, treat as 0
+                current_deposit = cart_item.deposit_amount or 0
+                cart_item.deposit_amount = current_deposit + new_deposit
+
+            new_monthly = validated_data.get("monthly_amount")
+            if new_monthly is not None:
+                current_monthly = cart_item.monthly_amount or 0
+                cart_item.monthly_amount = current_monthly + new_monthly
+
+            # detailed fields like duration likely stay same if payment option is same,
+            # but if they differ, it's ambiguous. For now, we assume user adding same config.
+            # If they provided a duration, we might overwrite?
+            # Let's stick to accumulating the monetary values which was the bug.
+
+            cart_item.save()
+        else:
+            cart_item = CartItem.objects.create(**validated_data)
+
+        return cart_item
+
+    def update(self, instance, validated_data):
+        instance.quantity = validated_data.get("quantity", instance.quantity)
+        instance.payment_option = validated_data.get(
+            "payment_option", instance.payment_option
+        )
+        instance.deposit_amount = validated_data.get(
+            "deposit_amount", instance.deposit_amount
+        )
+        instance.duration_months = validated_data.get(
+            "duration_months", instance.duration_months
+        )
+        instance.monthly_amount = validated_data.get(
+            "monthly_amount", instance.monthly_amount
+        )
+
+        if instance.quantity <= 0:
+            instance.delete()
+            return instance
+
+        instance.save()
+        return instance

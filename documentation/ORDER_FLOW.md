@@ -33,6 +33,11 @@ A **Payment Plan** is created *specifically* for each `OrderItem` at the moment 
     - It iterates through items, creating `PaymentPlan` records first, then `OrderItem` records linking everything together.
     - Total amount is calculated and saved.
 
+5.  **Fulfillment (Supplier Side)**:
+    -   Suppliers access `/api/v1/supplier-orders/` to see orders assigned to their company.
+    -   Suppliers can update the status of the Order (e.g., to `DISPATCHED`).
+
+
 ---
 
 ## API Endpoints

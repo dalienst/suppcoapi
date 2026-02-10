@@ -26,8 +26,15 @@ class PaymentOption(ReferenceModel, TimeStampedModel, UniversalIdModel):
     min_deposit_percentage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=0.00,
+        blank=True,
+        null=True,
         help_text="Required deposit percentage (e.g., 20.00 for 20%), mainly for Flexible",
+    )
+    interest_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.00,
+        help_text="Annual Interest Rate % (e.g. 10.00 for 10%)",
     )
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="payment_options"
