@@ -11,20 +11,34 @@ class OrderItemPaymentPlanSerializer(PaymentPlanSerializer):
     Product and User are injected by the backend.
     """
 
+    payment_option_name = serializers.CharField(
+        source="payment_option.name", read_only=True
+    )
+
     class Meta(PaymentPlanSerializer.Meta):
         fields = (
             "payment_option",
+            "payment_option_name",
             "amount",
             "plan",
             "deposit_amount",
             "duration_months",
+            "total_interest",
         )
-        read_only_fields = ("amount", "plan")
+        read_only_fields = ("amount", "plan", "payment_option_name", "total_interest")
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(
         queryset=Product.objects.all(), slug_field="reference"
+    )
+    product_reference = serializers.CharField(
+        read_only=True, source="product.reference"
+    )
+    product_name = serializers.CharField(read_only=True, source="product.product_name")
+    product_sku = serializers.CharField(read_only=True, source="product.sku")
+    product_company = serializers.CharField(
+        read_only=True, source="product.company.name"
     )
     payment_plan = OrderItemPaymentPlanSerializer()
 
@@ -33,6 +47,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = (
             "reference",
             "product",
+            "product_name",
+            "product_reference",
+            "product_sku",
+            "product_company",
             "payment_plan",
             "quantity",
             "price_at_purchase",
