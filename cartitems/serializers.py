@@ -65,6 +65,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             # If creating new item and quantity is missing, default to 1 as per model
             if not quantity:
                 quantity = 1
+                attrs["quantity"] = 1
 
         # 1. Product quantity Validation
         if product and quantity:
