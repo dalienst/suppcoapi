@@ -22,6 +22,7 @@ from branches.models import Branch
 from sites.models import Site
 from employment.models import Employment
 from employment.serializers import EmploymentSerializer
+from cart.models import Cart
 
 User = get_user_model()
 
