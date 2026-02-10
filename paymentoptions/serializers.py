@@ -15,6 +15,7 @@ class PaymentOptionSerializer(serializers.ModelSerializer):
         fields = [
             "payment_type",
             "min_deposit_percentage",
+            "interest_rate",
             "name",
             "description",
             "is_active",
@@ -35,7 +36,9 @@ class PaymentOptionSerializer(serializers.ModelSerializer):
         if payment_type == "FLEXIBLE":
             if min_deposit is None:
                 raise serializers.ValidationError(
-                    {"min_deposit_percentage": "This field is required for FLEXIBLE payment type."}
+                    {
+                        "min_deposit_percentage": "This field is required for FLEXIBLE payment type."
+                    }
                 )
             if not (0 < min_deposit <= 100):
                 raise serializers.ValidationError(

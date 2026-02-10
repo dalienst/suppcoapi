@@ -13,9 +13,40 @@ from paymentplans.utils import (
 
 class PaymentPlanSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
+    total_interest = serializers.SerializerMethodField()
     product = serializers.SlugRelatedField(
         queryset=Product.objects.all(), slug_field="sku"
     )
+
+    def get_total_interest(self, obj):
+        if not obj.plan:
+            return 0
+
+        total_payable = sum(Decimal(str(item["amount"])) for item in obj.plan)
+        principal = (
+            obj.product.price
+        )  # PaymentPlan is usually for 1 item unit? OR full order?
+        # Check model: PaymentPlan usually tracks a specific product purchase.
+        # But PaymentPlan model doesn't seem to store quantity?
+        # Let's check PaymentPlan model.
+        # Warning: If PaymentPlan is linked to OrderItem, quantity matters.
+        # But PaymentPlan itself has 'amount' (total valid amount).
+        # Let's use obj.amount which was set to total_amount in validate logic.
+
+        # In validate: total_amount = product.price.
+        # So Principal is obj.amount?
+        # But obj.amount in serializer usually refers to the field.
+        # Let's assume Principal = obj.amount (if that stores the cash price)
+        # OR calculate from Plan - Principal.
+
+        # Actually, let's look at how amount is set.
+        # In validate: attrs["amount"] = total_amount = product.price
+        # So obj.amount IS the principal (Cash Price).
+
+        principal = obj.amount
+        interest = total_payable - principal
+        return max(interest, 0)
+
     payment_option = serializers.SlugRelatedField(
         queryset=PaymentOption.objects.all(), slug_field="reference"
     )
@@ -45,6 +76,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             "deposit_amount",
             "duration_months",
             "monthly_amount",
+            "total_interest",
         )
         read_only_fields = ("reference", "amount", "plan", "created_at", "updated_at")
 
@@ -85,12 +117,14 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
                 )
 
             if monthly_amount and monthly_amount > 0:
+                interest_rate = payment_option.interest_rate or 0
                 attrs["plan"] = calculate_flexible_plan_by_amount(
-                    total_amount, deposit_amount, monthly_amount
+                    total_amount, deposit_amount, monthly_amount, interest_rate
                 )
             elif duration_months and duration_months >= 1:
+                interest_rate = payment_option.interest_rate or 0
                 attrs["plan"] = calculate_flexible_plan(
-                    total_amount, deposit_amount, duration_months
+                    total_amount, deposit_amount, duration_months, interest_rate
                 )
             else:
                 raise serializers.ValidationError(

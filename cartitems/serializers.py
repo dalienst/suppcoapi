@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from decimal import Decimal
 
 from cartitems.models import CartItem
 from products.models import Product
@@ -8,7 +9,7 @@ from paymentplans.utils import (
     calculate_flexible_plan,
     calculate_flexible_plan_by_amount,
 )
-
+from paymentoptions.serializers import PaymentOptionSerializer
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(
@@ -17,14 +18,24 @@ class CartItemSerializer(serializers.ModelSerializer):
     cart = serializers.CharField(read_only=True, source="cart.reference")
     sub_total = serializers.ReadOnlyField()
     payable_amount = serializers.ReadOnlyField()
+    total_interest = serializers.SerializerMethodField()
     payment_option = serializers.SlugRelatedField(
         slug_field="reference", queryset=PaymentOption.objects.all()
     )
-    product_reference = serializers.CharField(read_only=True, source="product.reference")
+    product_reference = serializers.CharField(
+        read_only=True, source="product.reference"
+    )
     product_name = serializers.CharField(read_only=True, source="product.product_name")
     product_sku = serializers.CharField(read_only=True, source="product.sku")
-    product_company = serializers.CharField(read_only=True, source="product.company.name")
+    product_company = serializers.CharField(
+        read_only=True, source="product.company.name"
+    )
+    payment_option_details = serializers.SerializerMethodField()
     projections = serializers.SerializerMethodField()
+
+
+    def get_payment_option_details(self, obj):
+        return PaymentOptionSerializer(obj.payment_option, many=False).data
 
     class Meta:
         model = CartItem
@@ -38,13 +49,15 @@ class CartItemSerializer(serializers.ModelSerializer):
             "quantity",
             "sub_total",
             "payable_amount",
-            "payment_option",
+            "total_interest",
             "deposit_amount",
             "duration_months",
             "monthly_amount",
             "created_at",
             "updated_at",
             "reference",
+            "payment_option",
+            "payment_option_details",
             "projections",
         )
 
@@ -143,6 +156,19 @@ class CartItemSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def get_total_interest(self, obj):
+        if not obj.payment_option or not obj.payment_option.is_flexible:
+            return 0
+
+        projections = self.get_projections(obj)
+        if not projections:
+            return 0
+
+        total_payable = sum(Decimal(str(item["amount"])) for item in projections)
+        principal = obj.product.price * obj.quantity
+        interest = total_payable - principal
+        return max(interest, 0)
+
     def get_projections(self, obj):
         if not obj.payment_option or not obj.payment_option.is_flexible:
             return None
@@ -152,11 +178,15 @@ class CartItemSerializer(serializers.ModelSerializer):
         deposit = obj.deposit_amount or 0
 
         if obj.monthly_amount and obj.monthly_amount > 0:
+            interest_rate = obj.payment_option.interest_rate or 0
             return calculate_flexible_plan_by_amount(
-                total_amount, deposit, obj.monthly_amount
+                total_amount, deposit, obj.monthly_amount, interest_rate
             )
         elif obj.duration_months and obj.duration_months > 0:
-            return calculate_flexible_plan(total_amount, deposit, obj.duration_months)
+            interest_rate = obj.payment_option.interest_rate or 0
+            return calculate_flexible_plan(
+                total_amount, deposit, obj.duration_months, interest_rate
+            )
 
         return None
 
