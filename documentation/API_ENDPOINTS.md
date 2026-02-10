@@ -199,3 +199,11 @@ This document outlines the available API endpoints for the SUPPCO application. A
 |----------|------|-------------|
 | `/` | `OrderItemListCreateView` | List order items |
 | `<str:reference>/` | `OrderItemRetrieveUpdateDestroyView` | Order item details |
+
+## Supplier Orders
+**Base URL:** `api/v1/supplier-orders/`
+
+| Endpoint | View | Description |
+|----------|------|-------------|
+| `/` | `SupplierOrderListCreateView` | List orders where user is the supplier |
+| `<str:reference>/` | `SupplierOrderRetrieveUpdateDestroyView` | Get details of a supplier order |

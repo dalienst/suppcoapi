@@ -76,4 +76,13 @@ When submitting to `/api/v1/orders/checkout/`:
     ]
 }
 ```
+    ]
+}
+```
 *   **Note**: `duration_months` and `monthly_amount` are now mutually exclusive optional fields (though providing both is valid, one usually drives the other). The serializer handles `null` values gracefully.
+
+## 5. Supplier Dashboard
+For the Supplier Portal:
+*   Fetch orders from: `GET /api/v1/supplier-orders/`
+*   This returns a list of orders where the **currently logged-in user** is either the **Owner** or **Staff** of the supplier company.
+*   The structure is identical to the standard Order response, but the context is different (Sales vs Purchases).
