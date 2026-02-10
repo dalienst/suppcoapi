@@ -59,7 +59,11 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         write_only=True, required=False, allow_null=True
     )
     monthly_amount = serializers.DecimalField(
-        max_digits=10, decimal_places=2, write_only=True, required=False
+        max_digits=10,
+        decimal_places=2,
+        write_only=True,
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
