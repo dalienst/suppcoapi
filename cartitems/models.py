@@ -37,9 +37,13 @@ class CartItem(TimeStampedModel, UniversalIdModel, ReferenceModel):
 
     @property
     def sub_total(self):
+        return self.product.price * self.quantity
+
+    @property
+    def payable_amount(self):
         if self.payment_option and self.payment_option.is_flexible:
             return self.deposit_amount or 0
-        return self.product.price * self.quantity
+        return self.sub_total
 
     def __str__(self):
         return f"{self.quantity} x {self.product.product_name} in {self.cart}"

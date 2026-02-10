@@ -16,6 +16,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     )
     cart = serializers.CharField(read_only=True, source="cart.reference")
     sub_total = serializers.ReadOnlyField()
+    payable_amount = serializers.ReadOnlyField()
     payment_option = serializers.SlugRelatedField(
         slug_field="reference", queryset=PaymentOption.objects.all()
     )
@@ -27,15 +28,17 @@ class CartItemSerializer(serializers.ModelSerializer):
             "cart",
             "product",
             "quantity",
+            "quantity",
             "sub_total",
+            "payable_amount",
             "payment_option",
             "deposit_amount",
             "duration_months",
             "monthly_amount",
-            "projections",
             "created_at",
             "updated_at",
             "reference",
+            "projections",
         )
 
     def validate(self, attrs):
