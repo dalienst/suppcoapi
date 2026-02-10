@@ -94,15 +94,13 @@ class CartItemSerializer(serializers.ModelSerializer):
                 formatted_total_price = "{:,.2f}".format(total_price)
 
                 if deposit_amount is None:
-                    raise serializers.ValidationError(
-                        {
-                            "deposit_amount": (
-                                f"Deposit amount is required for Flexible plans. "
-                                f"The minimum required is {formatted_min_deposit} "
-                                f"({payment_option.min_deposit_percentage}% of {formatted_total_price})."
-                            )
-                        }
-                    )
+                    # Automate deposit amount if not provided
+                    deposit_amount = min_deposit
+                    # Update attrs so it gets saved
+                    attrs["deposit_amount"] = deposit_amount
+
+                # We still perform the check in case the user provided a value that is too low
+                # (If we just set it above, this check will pass naturally)
 
                 if deposit_amount < min_deposit:
                     formatted_min_deposit = "{:,.2f}".format(min_deposit)
