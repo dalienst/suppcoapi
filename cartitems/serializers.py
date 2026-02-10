@@ -169,18 +169,25 @@ class CartItemSerializer(serializers.ModelSerializer):
         if cart_item:
             # update quantity and payment terms
             cart_item.quantity += validated_data["quantity"]
-            cart_item.payment_option = validated_data.get(
-                "payment_option", cart_item.payment_option
-            )
-            cart_item.deposit_amount = validated_data.get(
-                "deposit_amount", cart_item.deposit_amount
-            )
-            cart_item.duration_months = validated_data.get(
-                "duration_months", cart_item.duration_months
-            )
-            cart_item.monthly_amount = validated_data.get(
-                "monthly_amount", cart_item.monthly_amount
-            )
+
+            # For deposit and monthly amount, we should ADD the new amounts to the existing ones
+            # as the user is "adding more" of the same deal.
+            new_deposit = validated_data.get("deposit_amount")
+            if new_deposit is not None:
+                # If existing is None, treat as 0
+                current_deposit = cart_item.deposit_amount or 0
+                cart_item.deposit_amount = current_deposit + new_deposit
+
+            new_monthly = validated_data.get("monthly_amount")
+            if new_monthly is not None:
+                current_monthly = cart_item.monthly_amount or 0
+                cart_item.monthly_amount = current_monthly + new_monthly
+
+            # detailed fields like duration likely stay same if payment option is same,
+            # but if they differ, it's ambiguous. For now, we assume user adding same config.
+            # If they provided a duration, we might overwrite?
+            # Let's stick to accumulating the monetary values which was the bug.
+
             cart_item.save()
         else:
             cart_item = CartItem.objects.create(**validated_data)
