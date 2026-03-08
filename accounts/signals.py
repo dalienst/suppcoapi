@@ -16,4 +16,4 @@ def create_user_cart(sender, instance, created, **kwargs):
     if created:
         # You can make this conditional if you want carts only for certain roles
         # if instance.is_customer or instance.is_superuser:
-        Cart.objects.create(customer=instance)
+        Cart.objects.create(user=instance)
