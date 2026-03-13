@@ -13,6 +13,12 @@ class BranchListCreateView(generics.ListCreateAPIView):
         IsSupplierOrReadOnly,
     ]
 
+    # if he is supplier, return all branches of that supplier
+    def get_queryset(self):
+        if self.request.user.is_supplier:
+            return Branch.objects.filter(company=self.request.user.company)
+        return Branch.objects.all()
+
 
 class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
@@ -21,3 +27,9 @@ class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
         IsSupplierOrReadOnly,
     ]
     lookup_field = "identity"
+
+    # if he is supplier, return all branches of that supplier
+    def get_queryset(self):
+        if self.request.user.is_supplier:
+            return Branch.objects.filter(company=self.request.user.company)
+        return Branch.objects.all()
