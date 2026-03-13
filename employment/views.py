@@ -30,10 +30,22 @@ class EmployeeAssignView(generics.CreateAPIView):
     serializer_class = EmployeeAssignSerializer
     permission_classes = [IsOwnerOrReadOnly]
 
+    # return only the employees in that company
+    def get_queryset(self):
+        if self.request.user.is_contractor or self.request.user.is_supplier:
+            return Employment.objects.filter(company=self.request.user.company)
+        return Employment.objects.all()
+
 
 class EmployeeUnassignView(generics.GenericAPIView):
     serializer_class = EmployeeUnassignSerializer
     permission_classes = [IsOwnerOrReadOnly]
+
+    # return only the employees in that company
+    def get_queryset(self):
+        if self.request.user.is_contractor or self.request.user.is_supplier:
+            return Employment.objects.filter(company=self.request.user.company)
+        return Employment.objects.all()
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
