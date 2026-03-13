@@ -13,6 +13,12 @@ class SiteListCreateView(generics.ListCreateAPIView):
         IsContractorOrReadOnly,
     ]
 
+    # if he is contractor, return all sites of that contractor
+    def get_queryset(self):
+        if self.request.user.is_contractor:
+            return Site.objects.filter(company=self.request.user.company)
+        return Site.objects.all()
+
 
 class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Site.objects.all()
@@ -21,3 +27,9 @@ class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
         IsContractorOrReadOnly,
     ]
     lookup_field = "identity"
+
+    # if he is contractor, return all sites of that contractor
+    def get_queryset(self):
+        if self.request.user.is_contractor:
+            return Site.objects.filter(company=self.request.user.company)
+        return Site.objects.all()
