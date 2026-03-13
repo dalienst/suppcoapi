@@ -9,6 +9,12 @@ class InventoryListView(generics.ListAPIView):
     serializer_class = InventorySerializer
     permission_classes = [IsOwnerOrReadOnly]
 
+    # return only the inventories in that company
+    def get_queryset(self):
+        if self.request.user.is_supplier or self.request.user.is_contractor:
+            return Inventory.objects.filter(company=self.request.user.company)
+        return Inventory.objects.all()
+
 class InventoryListCreateView(generics.ListCreateAPIView):
     serializer_class = InventorySerializer
     permission_classes = [IsOwnerOrReadOnly]
@@ -17,7 +23,9 @@ class InventoryListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        return Inventory.objects.filter(user=self.request.user)
+        if self.request.user.is_supplier or self.request.user.is_contractor:
+            return Inventory.objects.filter(company=self.request.user.company)
+        return Inventory.objects.all()
 
 
 class InventoryDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -25,3 +33,9 @@ class InventoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InventorySerializer
     permission_classes = [IsOwnerOrReadOnly]
     lookup_field = "inventory_code"
+
+    # return only the inventories in that company
+    def get_queryset(self):
+        if self.request.user.is_supplier or self.request.user.is_contractor:
+            return Inventory.objects.filter(company=self.request.user.company)
+        return Inventory.objects.all()
