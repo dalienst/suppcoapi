@@ -6,14 +6,14 @@ from companies.permissions import IsOwnerOrReadOnly
 from companies.serializers import CompanySerializer
 
 
-class CompanyDetailView(generics.RetrieveUpdateDestroyAPIView):
+class CompanyDetailView(generics.RetrieveUpdateAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     permission_classes = [
         IsAuthenticated,
         IsOwnerOrReadOnly,
     ]
-    lookup_field = "identity"
+    lookup_field = "reference"
 
     def get_queryset(self):
         return Company.objects.filter(user=self.request.user)
@@ -27,12 +27,9 @@ class CompanyListView(generics.ListAPIView):
     ]
 
 
-class MyCompanyListView(generics.ListAPIView):
-    queryset = Company.objects.all()
+class MyCompanyDetailView(generics.RetrieveAPIView):
     serializer_class = CompanySerializer
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return Company.objects.filter(user=self.request.user)
+    def get_object(self):
+        return Company.objects.get(user=self.request.user)
