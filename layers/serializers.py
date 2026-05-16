@@ -24,6 +24,7 @@ class LayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Layer
         fields = (
+            "id",
             "user",
             "name",
             "inventory",

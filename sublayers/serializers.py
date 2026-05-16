@@ -22,6 +22,7 @@ class SubLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubLayer
         fields = (
+            "id",
             "user",
             "name",
             "layer",

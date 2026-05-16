@@ -20,6 +20,7 @@ class BracketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bracket
         fields = (
+            "id",
             "user",
             "name",
             "sublayeritem",

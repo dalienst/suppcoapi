@@ -11,6 +11,7 @@ class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = (
+            "id",
             "user",
             "name",
             "company",

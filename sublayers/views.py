@@ -11,6 +11,7 @@ class SubLayerListView(generics.ListAPIView):
     permission_classes = [
         AllowAny,
     ]
+    filterset_fields = ["layer", "layer__reference"]
 
 
 class SubLayerListCreateView(generics.ListCreateAPIView):

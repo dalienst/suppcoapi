@@ -19,6 +19,7 @@ class SublayerItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = SublayerItem
         fields = (
+            "id",
             "user",
             "name",
             "sublayer",

@@ -12,6 +12,7 @@ class BracketListView(generics.ListAPIView):
     permission_classes = [
         AllowAny,
     ]
+    filterset_fields = ["sublayeritem", "sublayeritem__reference"]
 
 
 class BracketListCreateView(generics.ListCreateAPIView):

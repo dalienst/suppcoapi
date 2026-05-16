@@ -26,6 +26,7 @@ class SublayerItemListView(generics.ListAPIView):
     permission_classes = [
         AllowAny,
     ]
+    filterset_fields = ["sublayer", "sublayer__reference"]
 
 
 class SublayerItemDetailView(generics.RetrieveUpdateDestroyAPIView):

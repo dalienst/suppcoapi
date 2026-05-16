@@ -15,6 +15,7 @@ class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
         fields = (
+            "id",
             "user",
             "name",
             "company",

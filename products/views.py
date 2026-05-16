@@ -9,13 +9,15 @@ class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [ IsOwnerOrReadOnly]
+    filterset_fields = ["layer", "sublayer", "sublayeritem", "bracket", "company"]
+    search_fields = ["product_name", "sku"]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    # return only the products in that company
+    # return only the products in that company for suppliers, all for contractors
     def get_queryset(self):
-        if self.request.user.is_supplier or self.request.user.is_contractor:
+        if self.request.user.is_supplier:
             return Product.objects.filter(company=self.request.user.company)
         return Product.objects.all()
 
