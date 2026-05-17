@@ -26,7 +26,7 @@ class RoleDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
         IsOwnerOrReadOnly,
     ]
-    lookup_field = "identity"
+    lookup_field = "reference"
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
