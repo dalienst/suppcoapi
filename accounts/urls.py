@@ -12,6 +12,7 @@ from accounts.views import (
     UserPublicProfile,
     OwnerDetailView,
     EmployeeCreatedByOwnerView,
+    EmployeeDetailByOwnerView,
 )
 
 app_name = "accounts"
@@ -38,4 +39,9 @@ urlpatterns = [
     # Owners
     path("owner/<str:id>/", OwnerDetailView.as_view(), name="owner-detail"),
     path("add/employee/", EmployeeCreatedByOwnerView.as_view(), name="employee-create"),
+    path(
+        "add/employee/<str:username>/",
+        EmployeeDetailByOwnerView.as_view(),
+        name="employee-detail",
+    ),
 ]
