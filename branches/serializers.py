@@ -9,6 +9,8 @@ User = get_user_model()
 
 
 class BranchProductMiniSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="product_name", read_only=True)
+
     class Meta:
         model = Product
         fields = (
