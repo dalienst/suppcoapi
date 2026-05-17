@@ -27,6 +27,18 @@ from cart.models import Cart
 User = get_user_model()
 
 
+class MiniBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ("id", "name", "address", "reference", "identity")
+
+
+class MiniSiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
+        fields = ("id", "name", "address", "reference", "identity")
+
+
 class BaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
@@ -45,6 +57,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
     )
     avatar = serializers.ImageField(use_url=True, required=False)
     employment = EmploymentSerializer(many=True, read_only=True)
+    assigned_branch_details = MiniBranchSerializer(source="assigned_branch", read_only=True)
+    assigned_site_details = MiniSiteSerializer(source="assigned_site", read_only=True)
 
     class Meta:
         model = User
@@ -68,6 +82,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "is_employee",
             "assigned_site",
             "assigned_branch",
+            "assigned_site_details",
+            "assigned_branch_details",
             "account_type",
             "created_at",
             "updated_at",
@@ -293,6 +309,8 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
             "is_supplier",
             "assigned_site",
             "assigned_branch",
+            "assigned_site_details",
+            "assigned_branch_details",
             "created_at",
             "updated_at",
             "account_type",
