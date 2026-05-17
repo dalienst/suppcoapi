@@ -11,6 +11,19 @@ from products.models import Product
 from paymentoptions.models import PaymentOption
 from paymentoptions.serializers import PaymentOptionSerializer
 
+class MiniProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "reference",
+            "product_name",
+            "sku",
+            "quantity",
+            "unit",
+            "price",
+            "image",
+        )
 
 class ProductSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)

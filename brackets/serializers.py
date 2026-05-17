@@ -3,6 +3,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from brackets.models import Bracket
 from sublayeritems.models import SublayerItem
+from products.serializers import MiniProductSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -13,6 +14,7 @@ class BracketSerializer(serializers.ModelSerializer):
     sublayeritem = serializers.SlugRelatedField(
         slug_field="reference", queryset=SublayerItem.objects.all()
     )
+    products = MiniProductSerializer(source="bracket_products", many=True, read_only=True)
     name = serializers.CharField()
     sublayeritem_details = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
@@ -29,6 +31,7 @@ class BracketSerializer(serializers.ModelSerializer):
             "reference",
             "user_details",
             "sublayeritem_details",
+            "products",
         )
         validators = [
             UniqueTogetherValidator(
