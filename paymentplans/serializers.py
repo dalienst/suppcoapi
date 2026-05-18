@@ -53,7 +53,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
 
     # Write-only fields for plan calculation
     deposit_amount = serializers.DecimalField(
-        max_digits=10, decimal_places=2, write_only=True, required=False
+        max_digits=10, decimal_places=2, write_only=True, required=False, allow_null=True
     )
     duration_months = serializers.IntegerField(
         write_only=True, required=False, allow_null=True
@@ -87,9 +87,18 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         product = attrs.get("product")
         payment_option = attrs.get("payment_option")
-        deposit_amount = attrs.get("deposit_amount", Decimal("0.00"))
-        duration_months = attrs.get("duration_months", 0)
-        monthly_amount = attrs.get("monthly_amount", Decimal("0.00"))
+        
+        deposit_amount = attrs.get("deposit_amount")
+        if deposit_amount is None:
+            deposit_amount = Decimal("0.00")
+            
+        duration_months = attrs.get("duration_months")
+        if duration_months is None:
+            duration_months = 0
+            
+        monthly_amount = attrs.get("monthly_amount")
+        if monthly_amount is None:
+            monthly_amount = Decimal("0.00")
 
         # Basic Validation
         if not product or not payment_option:

@@ -9,13 +9,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db import transaction
 
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
 from orders.models import Order
+
+
+class PaymentListView(generics.ListAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Payment.objects.filter(user=self.request.user).order_by("-created_at")
 
 
 class PaymentInitializationView(APIView):
@@ -43,6 +51,13 @@ class PaymentInitializationView(APIView):
         total_downpayment = Decimal("0.00")
 
         for order in orders:
+            # Add shipping fee for this order if present
+            try:
+                if hasattr(order, "delivery_detail") and order.delivery_detail:
+                    total_downpayment += order.delivery_detail.shipping_fee
+            except Exception:
+                pass
+
             for item in order.items.all():
                 pp = item.payment_plan
                 if pp and pp.plan:
@@ -177,8 +192,16 @@ class PaystackWebhookView(APIView):
                                 else:
                                     order_downpayment += item.price * item.quantity
 
+                            # Include shipping fee in total paid amount
+                            shipping_fee = Decimal("0.00")
+                            try:
+                                if hasattr(order, "delivery_detail") and order.delivery_detail:
+                                    shipping_fee = order.delivery_detail.shipping_fee
+                            except Exception:
+                                pass
+
                             # Record payment on the order header
-                            order.paid_amount += order_downpayment
+                            order.paid_amount += (order_downpayment + shipping_fee)
                             order.status = "PLACED"
                             order.save()
 

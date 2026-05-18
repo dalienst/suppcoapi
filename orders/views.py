@@ -47,6 +47,7 @@ class CheckoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        from decimal import Decimal
         user = request.user
         cart = get_object_or_404(Cart, user=user)
         # Select related fields for grouping and data access
@@ -59,7 +60,23 @@ class CheckoutView(APIView):
                 {"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 1. Validate Stock Globally
+        # 1. Extract delivery parameters
+        delivery_address = request.data.get("delivery_address", "")
+        delivery_zone_ref = request.data.get("delivery_zone", None)
+        recipient_name = f"{user.first_name} {user.last_name}".strip() or user.username
+        recipient_phone = getattr(user, "phone", "") or ""
+
+        delivery_zone = None
+        shipping_fee = Decimal("0.00")
+        if delivery_zone_ref:
+            try:
+                from delivery.models import DeliveryZone
+                delivery_zone = DeliveryZone.objects.get(reference=delivery_zone_ref, is_active=True)
+                shipping_fee = delivery_zone.fee
+            except DeliveryZone.DoesNotExist:
+                pass
+
+        # 2. Validate Stock Globally
         for item in cart_items:
             # Assuming product has a 'quantity' field for stock
             if item.quantity > item.product.quantity:
@@ -71,7 +88,7 @@ class CheckoutView(APIView):
         created_orders = []
 
         with transaction.atomic():
-            # 2. Group Items by (Company, PaymentOption)
+            # 3. Group Items by (Company, PaymentOption)
             # using a dictionary to group
             grouped_items = {}
             for item in cart_items:
@@ -81,7 +98,7 @@ class CheckoutView(APIView):
                     grouped_items[key] = []
                 grouped_items[key].append(item)
 
-            # 3. Create Order for each group
+            # 4. Create Order for each group
             for key, items in grouped_items.items():
                 # All items in this group share the same supplier and payment option
                 # We can grab it from the first item
@@ -94,6 +111,7 @@ class CheckoutView(APIView):
                     user=user,
                     company=first_item.product.company,
                     status="PLACED",
+                    delivery_address=delivery_address,
                     total_amount=0,
                 )
 
@@ -140,11 +158,25 @@ class CheckoutView(APIView):
                     product.save()
 
                 # Update Order Total
-                order.total_amount = total_order_amount
+                order.total_amount = total_order_amount + shipping_fee
                 order.save()
+
+                # Create OrderDelivery tracking details
+                from orderdelivery.models import OrderDelivery
+                OrderDelivery.objects.create(
+                    order=order,
+                    delivery_method="DELIVERY" if delivery_zone else "PICKUP",
+                    delivery_zone=delivery_zone,
+                    shipping_fee=shipping_fee,
+                    delivery_address=delivery_address,
+                    recipient_name=recipient_name,
+                    recipient_phone=recipient_phone,
+                    status="PENDING",
+                )
+
                 created_orders.append(order)
 
-            # 4. Clear Cart
+            # 5. Clear Cart
             cart.items.all().delete()
 
         # Return list of created orders
