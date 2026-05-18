@@ -48,6 +48,8 @@ class MiniProductSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
     company = serializers.CharField(source="user.company.name", read_only=True)
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    company_reference = serializers.CharField(source="company.reference", read_only=True)
     branch = serializers.SlugRelatedField(
         slug_field="identity", queryset=Branch.objects.all(), required=False
     )
@@ -90,6 +92,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "company",
+            "company_name",
+            "company_reference",
             "branch",
             "branch_name",
             "site",
