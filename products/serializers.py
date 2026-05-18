@@ -11,6 +11,39 @@ from products.models import Product
 from paymentoptions.models import PaymentOption
 from paymentoptions.serializers import PaymentOptionSerializer
 
+class MiniLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Layer
+        fields = ("reference", "name")
+
+class MiniSubLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubLayer
+        fields = ("reference", "name")
+
+class MiniSublayerItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SublayerItem
+        fields = ("reference", "name")
+
+class MiniBracketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bracket
+        fields = ("reference", "name")
+
+class MiniProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "reference",
+            "product_name",
+            "sku",
+            "quantity",
+            "unit",
+            "price",
+            "image",
+        )
 
 class ProductSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
@@ -41,6 +74,11 @@ class ProductSerializer(serializers.ModelSerializer):
         many=True,
     )
     payment_options_details = serializers.SerializerMethodField()
+    
+    layer_details = MiniLayerSerializer(source="layer", read_only=True)
+    sublayer_details = MiniSubLayerSerializer(source="sublayer", read_only=True)
+    sublayeritem_details = MiniSublayerItemSerializer(source="sublayeritem", read_only=True)
+    bracket_details = MiniBracketSerializer(source="bracket", read_only=True)
 
     def get_payment_options_details(self, obj):
         return PaymentOptionSerializer(obj.payment_options.all(), many=True).data
@@ -48,6 +86,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
+            "id",
             "user",
             "company",
             "branch",
@@ -69,6 +108,10 @@ class ProductSerializer(serializers.ModelSerializer):
             "updated_at",
             "payment_options",
             "payment_options_details",
+            "layer_details",
+            "sublayer_details",
+            "sublayeritem_details",
+            "bracket_details",
         )
 
     def create(self, validated_data):

@@ -6,5 +6,5 @@ app_name = "sites"
 
 urlpatterns = [
     path("", SiteListCreateView.as_view(), name="site-list"),
-    path("<str:identity>/", SiteDetailView.as_view(), name="site-detail"),
+    path("<str:reference>/", SiteDetailView.as_view(), name="site-detail"),
 ]

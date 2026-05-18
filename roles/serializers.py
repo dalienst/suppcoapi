@@ -37,8 +37,9 @@ class RoleSerializer(serializers.ModelSerializer):
             "permissions_details",
             "created_at",
             "updated_at",
+            "reference",
         )
-        read_only_fields = ("user", "identity", "created_at", "updated_at")
+        read_only_fields = ("user", "identity", "created_at", "updated_at", "reference")
 
     def validate(self, attrs):
         request = self.context["request"]

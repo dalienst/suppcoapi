@@ -14,13 +14,13 @@ djoser = "2.3.3"
 gunicorn = "23.0.0"
 markdown = "3.9"
 pillow = "11.3.0"
-psycopg2-binary = "2.9.10"
 python-decouple = "3.8"
 resend = "2.13.1"
 whitenoise = "6.10.0"
 python-dateutil = "2.9.0.post0"
+psycopg = {extras = ["binary"], version = "3.3.4"}
 
 [dev-packages]
 
 [requires]
-python_version = "3.13"
+python_version = "3.14"

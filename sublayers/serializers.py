@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from sublayers.models import SubLayer
 from layers.models import Layer
 from sublayeritems.serializers import SublayerItemSerializer
+from products.serializers import MiniProductSerializer
 
 User = get_user_model()
 
@@ -16,21 +17,24 @@ class SubLayerSerializer(serializers.ModelSerializer):
     )
     name = serializers.CharField()
     sublayeritems = SublayerItemSerializer(many=True, read_only=True)
+    products = MiniProductSerializer(source="sublayer_products", many=True, read_only=True)
     layer_details = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
 
     class Meta:
         model = SubLayer
         fields = (
+            "id",
             "user",
             "name",
             "layer",
             "created_at",
             "updated_at",
             "reference",
-            "layer_details",
             "user_details",
+            "layer_details",
             "sublayeritems",
+            "products",
         )
         validators = [
             UniqueTogetherValidator(

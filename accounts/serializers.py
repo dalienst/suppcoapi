@@ -27,6 +27,18 @@ from cart.models import Cart
 User = get_user_model()
 
 
+class MiniBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ("id", "name", "address", "reference", "identity")
+
+
+class MiniSiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Site
+        fields = ("id", "name", "address", "reference", "identity")
+
+
 class BaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
@@ -45,6 +57,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
     )
     avatar = serializers.ImageField(use_url=True, required=False)
     employment = EmploymentSerializer(many=True, read_only=True)
+    assigned_branch_details = MiniBranchSerializer(source="assigned_branch", read_only=True)
+    assigned_site_details = MiniSiteSerializer(source="assigned_site", read_only=True)
 
     class Meta:
         model = User
@@ -68,6 +82,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "is_employee",
             "assigned_site",
             "assigned_branch",
+            "assigned_site_details",
+            "assigned_branch_details",
             "account_type",
             "created_at",
             "updated_at",
@@ -293,6 +309,8 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
             "is_supplier",
             "assigned_site",
             "assigned_branch",
+            "assigned_site_details",
+            "assigned_branch_details",
             "created_at",
             "updated_at",
             "account_type",
@@ -304,28 +322,35 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         )
 
     def validate(self, attrs):
-        company = attrs.get("company")
-        role = attrs.get("role")
+        company = attrs.get("company", None)
+        role = attrs.get("role", None)
         site = attrs.get("site", None)
         branch = attrs.get("branch", None)
 
-        # Check if user is owner of the company
-        if not self.context["request"].user == company.user:
-            raise serializers.ValidationError(
-                "You must be the company owner to create an employee."
-            )
+        if self.instance:
+            if not company:
+                company = self.instance.employment.first().company if self.instance.employment.exists() else None
+            if not role:
+                role = self.instance.employment.first().role if self.instance.employment.exists() else None
 
-        if role.company != company:
-            raise serializers.ValidationError("Role is not in this company")
+        if company:
+            # Check if user is owner of the company
+            if not self.context["request"].user == company.user:
+                raise serializers.ValidationError(
+                    "You must be the company owner to manage an employee."
+                )
 
-        # Prevent assigning both site and branch
-        if site and branch:
-            raise serializers.ValidationError("Cannot assign both site and branch")
+            if role and role.company != company:
+                raise serializers.ValidationError("Role is not in this company")
 
-        if site and site.company != company:
-            raise serializers.ValidationError("Site is not in this company")
-        if branch and branch.company != company:
-            raise serializers.ValidationError("Branch is not in this company")
+            # Prevent assigning both site and branch
+            if site and branch:
+                raise serializers.ValidationError("Cannot assign both site and branch")
+
+            if site and site.company != company:
+                raise serializers.ValidationError("Site is not in this company")
+            if branch and branch.company != company:
+                raise serializers.ValidationError("Branch is not in this company")
 
         return attrs
 
@@ -364,3 +389,49 @@ class EmployeeCreatedByOwnerSerializer(BaseUserSerializer):
         )
 
         return user
+
+    def update(self, instance, validated_data):
+        role = validated_data.pop("role", None)
+        site = validated_data.pop("site", None)
+        branch = validated_data.pop("branch", None)
+        password = validated_data.pop("password", None)
+        validated_data.pop("company", None)
+
+        # Update standard fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        # Update Role if provided
+        if role:
+            try:
+                company_to_use = instance.employment.first().company if instance.employment.exists() else None
+                if company_to_use:
+                    employment = Employment.objects.get(user=instance, company=company_to_use, is_active=True)
+                    employment.role = role
+                    employment.save()
+            except Employment.DoesNotExist:
+                if instance.employment.exists():
+                    employment = instance.employment.first()
+                    employment.role = role
+                    employment.save()
+
+        # Update site/branch assignment if provided or cleared
+        if site is not None or branch is not None:
+            instance.assigned_site = site
+            instance.assigned_branch = branch
+
+            # Assign as head if role is head
+            active_role = role or (instance.employment.first().role if instance.employment.exists() else None)
+            if active_role and active_role.is_head:
+                if site:
+                    site.head = instance
+                    site.save()
+                if branch:
+                    branch.head = instance
+                    branch.save()
+
+        instance.save()
+        return instance
