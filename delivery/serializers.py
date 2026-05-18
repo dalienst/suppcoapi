@@ -20,7 +20,7 @@ class DeliveryZoneSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "reference", "created_at", "updated_at")
+        read_only_fields = ("id", "reference", "company", "created_at", "updated_at")
 
     def validate_fee(self, value):
         if value < 0:
