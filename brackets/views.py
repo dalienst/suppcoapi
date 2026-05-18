@@ -14,6 +14,13 @@ class BracketListView(generics.ListAPIView):
     ]
     filterset_fields = ["sublayeritem", "sublayeritem__reference"]
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            if self.request.user.is_supplier or self.request.user.is_contractor:
+                return Bracket.objects.filter(sublayeritem__sublayer__layer__inventory__company=self.request.user.company)
+            return Bracket.objects.filter(user=self.request.user)
+        return Bracket.objects.all()
+
 
 class BracketListCreateView(generics.ListCreateAPIView):
     queryset = Bracket.objects.all()

@@ -26,7 +26,7 @@ class SiteDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
         IsContractorOrReadOnly,
     ]
-    lookup_field = "identity"
+    lookup_field = "reference"
 
     # if he is contractor, return all sites of that contractor
     def get_queryset(self):

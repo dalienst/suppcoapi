@@ -12,6 +12,13 @@ class LayerListView(generics.ListAPIView):
         AllowAny,
     ]
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            if self.request.user.is_supplier or self.request.user.is_contractor:
+                return Layer.objects.filter(inventory__company=self.request.user.company)
+            return Layer.objects.filter(user=self.request.user)
+        return Layer.objects.all()
+
 
 class LayerListCreateView(generics.ListCreateAPIView):
     queryset = Layer.objects.all().prefetch_related("sublayers")

@@ -11,6 +11,10 @@ class InventoryListView(generics.ListAPIView):
 
     # return only the inventories in that company
     def get_queryset(self):
+        is_marketplace = self.request.query_params.get('marketplace', 'false').lower() == 'true'
+        if is_marketplace:
+            return Inventory.objects.filter(company__type="SUPPLIER")
+
         if self.request.user.is_supplier or self.request.user.is_contractor:
             return Inventory.objects.filter(company=self.request.user.company)
         return Inventory.objects.all()
@@ -23,6 +27,10 @@ class InventoryListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
+        is_marketplace = self.request.query_params.get('marketplace', 'false').lower() == 'true'
+        if is_marketplace:
+            return Inventory.objects.filter(company__type="SUPPLIER")
+
         if self.request.user.is_supplier or self.request.user.is_contractor:
             return Inventory.objects.filter(company=self.request.user.company)
         return Inventory.objects.all()

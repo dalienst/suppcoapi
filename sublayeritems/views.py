@@ -28,6 +28,13 @@ class SublayerItemListView(generics.ListAPIView):
     ]
     filterset_fields = ["sublayer", "sublayer__reference"]
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            if self.request.user.is_supplier or self.request.user.is_contractor:
+                return SublayerItem.objects.filter(sublayer__layer__inventory__company=self.request.user.company)
+            return SublayerItem.objects.filter(user=self.request.user)
+        return SublayerItem.objects.all()
+
 
 class SublayerItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SublayerItem.objects.all().prefetch_related("brackets")
