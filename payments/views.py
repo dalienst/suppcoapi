@@ -23,7 +23,15 @@ class PaymentListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Payment.objects.filter(user=self.request.user).order_by("-created_at")
+        user = self.request.user
+        if user.is_supplier:
+            company = getattr(user, "company", None)
+            if not company and user.employment.filter(is_active=True).exists():
+                company = user.employment.filter(is_active=True).first().company
+            if company:
+                return Payment.objects.filter(orders__company=company).distinct().order_by("-created_at")
+            return Payment.objects.none()
+        return Payment.objects.filter(user=user).order_by("-created_at")
 
 
 class PaymentInitializationView(APIView):

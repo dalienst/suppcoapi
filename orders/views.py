@@ -19,11 +19,14 @@ class OrderListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        # Contractor sees their own orders
-        # (Enhancement: For Suppliers, we might need a different view or filtering,
-        # but technically Suppliers mostly care about OrderItems.
-        # For now, let's assume this view is primarily for the Contractor/User facing side.)
-        return Order.objects.filter(user=user)
+        if user.is_supplier:
+            company = getattr(user, "company", None)
+            if not company and user.employment.filter(is_active=True).exists():
+                company = user.employment.filter(is_active=True).first().company
+            if company:
+                return Order.objects.filter(company=company).order_by("-created_at")
+            return Order.objects.none()
+        return Order.objects.filter(user=user).order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -36,11 +39,22 @@ class OrderRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        # Contractor sees their own orders
-        # (Enhancement: For Suppliers, we might need a different view or filtering,
-        # but technically Suppliers mostly care about OrderItems.
-        # For now, let's assume this view is primarily for the Contractor/User facing side.)
-        return Order.objects.filter(user=user)
+        if user.is_supplier:
+            company = getattr(user, "company", None)
+            if not company and user.employment.filter(is_active=True).exists():
+                company = user.employment.filter(is_active=True).first().company
+            if company:
+                return Order.objects.filter(company=company).order_by("-created_at")
+            return Order.objects.none()
+        return Order.objects.filter(user=user).order_by("-created_at")
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.is_supplier:
+            status_val = self.request.data.get("status")
+            if status_val in dict(Order.STATUS_CHOICES):
+                serializer.instance.status = status_val
+        serializer.save()
 
 
 class CheckoutView(APIView):
