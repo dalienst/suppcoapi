@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     # Cart app
     "cart",
     "cartitems",
+    "delivery",
+    "orderdelivery",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -208,3 +211,7 @@ cloudinary.config(
 RESEND_API_KEY = config("RESEND_API_KEY")
 DOMAIN = config("DOMAIN")
 BASE_URL = config("BASE_URL")
+
+# Paystack settings
+PAYSTACK_SECRET_KEY = config("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = config("PAYSTACK_PUBLIC_KEY", default="")

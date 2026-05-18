@@ -26,6 +26,13 @@ class Order(TimeStampedModel, UniversalIdModel, ReferenceModel):
     )
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="DRAFT")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # Delivery & Tracking info
+    delivery_address = models.TextField(blank=True, null=True)
+    carrier_details = models.CharField(max_length=255, blank=True, null=True)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    
     reference = models.CharField(
         max_length=100, unique=True, default=uuid.uuid4, editable=False
     )
