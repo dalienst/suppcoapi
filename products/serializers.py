@@ -75,6 +75,7 @@ class ProductSerializer(serializers.ModelSerializer):
     )
     payment_options_details = serializers.SerializerMethodField()
     
+    branch_name = serializers.CharField(source="branch.name", read_only=True, default=None)
     layer_details = MiniLayerSerializer(source="layer", read_only=True)
     sublayer_details = MiniSubLayerSerializer(source="sublayer", read_only=True)
     sublayeritem_details = MiniSublayerItemSerializer(source="sublayeritem", read_only=True)
@@ -90,6 +91,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "user",
             "company",
             "branch",
+            "branch_name",
             "site",
             "layer",
             "sublayer",
