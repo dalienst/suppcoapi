@@ -65,6 +65,13 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    quantity = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = PaymentPlan
@@ -80,6 +87,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             "deposit_amount",
             "duration_months",
             "monthly_amount",
+            "quantity",
             "total_interest",
         )
         read_only_fields = ("reference", "amount", "plan", "created_at", "updated_at")
@@ -100,11 +108,17 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         if monthly_amount is None:
             monthly_amount = Decimal("0.00")
 
+        quantity = attrs.get("quantity")
+        if quantity is None:
+            quantity = Decimal("1.00")
+        else:
+            quantity = Decimal(str(quantity))
+
         # Basic Validation
         if not product or not payment_option:
             return attrs
 
-        total_amount = product.price
+        total_amount = product.price * quantity
         attrs["amount"] = total_amount  # Set total amount on the model
 
         # Generate Plan based on Option Type
@@ -151,4 +165,5 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
         validated_data.pop("deposit_amount", None)
         validated_data.pop("duration_months", None)
         validated_data.pop("monthly_amount", None)
+        validated_data.pop("quantity", None)
         return super().create(validated_data)

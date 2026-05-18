@@ -31,6 +31,111 @@ class PaymentInitializationView(APIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
+        plan_reference = request.data.get("plan_reference", None)
+        installment_index = request.data.get("installment_index", None)
+
+        if plan_reference is not None and installment_index is not None:
+            from paymentplans.models import PaymentPlan
+            try:
+                payment_plan = PaymentPlan.objects.get(reference=plan_reference, user=user)
+            except PaymentPlan.DoesNotExist:
+                return Response(
+                    {"error": "Payment plan not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            try:
+                inst_idx = int(installment_index)
+                installment = payment_plan.plan[inst_idx]
+            except (IndexError, ValueError, TypeError):
+                return Response(
+                    {"error": "Invalid installment index."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if installment.get("status") == "PAID":
+                return Response(
+                    {"error": "This installment has already been paid."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            amount = Decimal(str(installment.get("amount", 0.00)))
+            if amount <= 0:
+                return Response(
+                    {"error": "Installment amount must be greater than zero."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Find matching order
+            order_item = getattr(payment_plan, "order_item", None)
+            order = order_item.order if order_item else None
+            orders = [order] if order else []
+
+            # Create Database Payment
+            with transaction.atomic():
+                payment = Payment.objects.create(
+                    user=user,
+                    amount=amount,
+                    status="PENDING",
+                )
+                if orders:
+                    payment.orders.set(orders)
+
+                # Set custom metadata
+                payment.metadata = {
+                    "payment_type": "INSTALLMENT",
+                    "plan_reference": plan_reference,
+                    "installment_index": inst_idx,
+                }
+                payment.save()
+
+            # Request Paystack initialization
+            paystack_url = "https://api.paystack.co/transaction/initialize"
+            headers = {
+                "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                "Content-Type": "application/json",
+            }
+            paystack_amount = int(amount * 100)
+
+            payload = {
+                "email": user.email,
+                "amount": paystack_amount,
+                "reference": payment.reference,
+                "callback_url": f"{settings.DOMAIN}/payments/callback/",
+                "metadata": {
+                    "payment_reference": payment.reference,
+                    "payment_type": "INSTALLMENT",
+                    "plan_reference": plan_reference,
+                    "installment_index": inst_idx,
+                },
+                "channels": ["card", "mobile_money"],
+            }
+
+            try:
+                response = requests.post(paystack_url, json=payload, headers=headers)
+                res_data = response.json()
+
+                if response.status_code == 200 and res_data.get("status"):
+                    return Response(
+                        {
+                            "payment_reference": payment.reference,
+                            "amount": float(amount),
+                            "authorization_url": res_data["data"]["authorization_url"],
+                            "access_code": res_data["data"]["access_code"],
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"error": res_data.get("message", "Paystack transaction initialization failed.")},
+                        status=status.HTTP_424_FAILED_DEPENDENCY,
+                    )
+            except Exception as e:
+                return Response(
+                    {"error": f"Failed to connect to Paystack payment gateway: {str(e)}"},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+
         order_references = request.data.get("order_references", [])
 
         if not order_references:
@@ -173,37 +278,56 @@ class PaystackWebhookView(APIView):
                     if payment.status == "PENDING":
                         # Transition payment state
                         payment.status = "SUCCESS"
-                        payment.paystack_reference = data.get("gateway_response") or data.get("reference")
+                        payment.paystack_reference = data.get("reference")
                         payment.payment_method = data.get("channel")
-                        payment.metadata = payload
+                        
+                        paystack_metadata = data.get("metadata", {})
+                        payment.metadata = paystack_metadata
                         payment.save()
 
-                        # Reconcile each linked order and payment plans
-                        for order in payment.orders.all():
-                            # Calculate downpayment sum specifically for this order
-                            order_downpayment = Decimal("0.00")
-                            for item in order.items.all():
-                                pp = item.payment_plan
-                                if pp and pp.plan:
-                                    # Update installment 1 state to PAID
-                                    pp.plan[0]["status"] = "PAID"
-                                    pp.save()
-                                    order_downpayment += Decimal(str(pp.plan[0].get("amount", 0.00)))
-                                else:
-                                    order_downpayment += item.price * item.quantity
+                        # Reconcile Payment
+                        if paystack_metadata.get("payment_type") == "INSTALLMENT":
+                            from paymentplans.models import PaymentPlan
+                            plan_ref = paystack_metadata.get("plan_reference")
+                            inst_idx = int(paystack_metadata.get("installment_index"))
+                            
+                            payment_plan = PaymentPlan.objects.get(reference=plan_ref)
+                            payment_plan.plan[inst_idx]["status"] = "PAID"
+                            payment_plan.save()
+                            
+                            # Increment Order's paid_amount
+                            order_item = getattr(payment_plan, "order_item", None)
+                            if order_item:
+                                order = order_item.order
+                                order.paid_amount += payment.amount
+                                order.save()
+                        else:
+                            # Standard checkout bulk payments
+                            for order in payment.orders.all():
+                                # Calculate downpayment sum specifically for this order
+                                order_downpayment = Decimal("0.00")
+                                for item in order.items.all():
+                                    pp = item.payment_plan
+                                    if pp and pp.plan:
+                                        # Update installment 1 state to PAID
+                                        pp.plan[0]["status"] = "PAID"
+                                        pp.save()
+                                        order_downpayment += Decimal(str(pp.plan[0].get("amount", 0.00)))
+                                    else:
+                                        order_downpayment += item.price * item.quantity
 
-                            # Include shipping fee in total paid amount
-                            shipping_fee = Decimal("0.00")
-                            try:
-                                if hasattr(order, "delivery_detail") and order.delivery_detail:
-                                    shipping_fee = order.delivery_detail.shipping_fee
-                            except Exception:
-                                pass
+                                # Include shipping fee in total paid amount
+                                shipping_fee = Decimal("0.00")
+                                try:
+                                    if hasattr(order, "delivery_detail") and order.delivery_detail:
+                                        shipping_fee = order.delivery_detail.shipping_fee
+                                except Exception:
+                                    pass
 
-                            # Record payment on the order header
-                            order.paid_amount += (order_downpayment + shipping_fee)
-                            order.status = "PLACED"
-                            order.save()
+                                # Record payment on the order header
+                                order.paid_amount += (order_downpayment + shipping_fee)
+                                order.status = "PLACED"
+                                order.save()
 
             except Payment.DoesNotExist:
                 # Log or handle case where payment is not found (perhaps not initiated by our checkout)

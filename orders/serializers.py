@@ -6,17 +6,23 @@ from orderitems.serializers import OrderItemSerializer
 from paymentplans.models import PaymentPlan
 from paymentplans.serializers import PaymentPlanSerializer
 from products.models import Product
+from orderdelivery.serializers import OrderDeliverySerializer
 
 
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    company_reference = serializers.CharField(source="company.reference", read_only=True)
     items = OrderItemSerializer(many=True)
+    delivery_detail = OrderDeliverySerializer(read_only=True)
 
     class Meta:
         model = Order
         fields = (
             "reference",
             "user",
+            "company_name",
+            "company_reference",
             "status",
             "total_amount",
             "paid_amount",
@@ -24,6 +30,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "carrier_details",
             "tracking_number",
             "items",
+            "delivery_detail",
             "created_at",
             "updated_at",
         )
@@ -65,6 +72,7 @@ class OrderSerializer(serializers.ModelSerializer):
                         "deposit_amount": payment_plan_data.get("deposit_amount"),
                         "duration_months": payment_plan_data.get("duration_months"),
                         "monthly_amount": payment_plan_data.get("monthly_amount"),
+                        "quantity": item_data["quantity"],
                     },
                     context=self.context,
                 )
