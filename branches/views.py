@@ -26,7 +26,7 @@ class BranchDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [
         IsSupplierOrReadOnly,
     ]
-    lookup_field = "identity"
+    lookup_field = "reference"
 
     # if he is supplier, return all branches of that supplier
     def get_queryset(self):

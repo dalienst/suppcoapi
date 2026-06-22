@@ -6,5 +6,5 @@ app_name = "branches"
 
 urlpatterns = [
     path("", BranchListCreateView.as_view(), name="branch-list"),
-    path("<str:identity>/", BranchDetailView.as_view(), name="branch-detail"),
+    path("<str:reference>/", BranchDetailView.as_view(), name="branch-detail"),
 ]

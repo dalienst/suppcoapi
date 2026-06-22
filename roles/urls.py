@@ -6,5 +6,5 @@ app_name = "roles"
 
 urlpatterns = [
     path("", RoleListCreateView.as_view(), name="role-list"),
-    path("<str:identity>/", RoleDetailView.as_view(), name="role-detail"),
+    path("<str:reference>/", RoleDetailView.as_view(), name="role-detail"),
 ]

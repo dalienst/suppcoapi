@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     # Cart app
     "cart",
     "cartitems",
+    "delivery",
+    "orderdelivery",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -191,7 +194,10 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
-    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+    ],
 }
 
 # cloudinary settings
@@ -205,3 +211,7 @@ cloudinary.config(
 RESEND_API_KEY = config("RESEND_API_KEY")
 DOMAIN = config("DOMAIN")
 BASE_URL = config("BASE_URL")
+
+# Paystack settings
+PAYSTACK_SECRET_KEY = config("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = config("PAYSTACK_PUBLIC_KEY", default="")

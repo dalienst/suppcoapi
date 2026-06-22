@@ -207,3 +207,15 @@ class EmployeeCreatedByOwnerView(generics.ListCreateAPIView):
         return (
             super().get_queryset().filter(employment__company__user=self.request.user)
         )
+
+
+class EmployeeDetailByOwnerView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsOwnerOrReadOnly,)
+    serializer_class = EmployeeCreatedByOwnerSerializer
+    queryset = User.objects.all()
+    lookup_field = "username"
+
+    def get_queryset(self):
+        return (
+            super().get_queryset().filter(employment__company__user=self.request.user)
+        )

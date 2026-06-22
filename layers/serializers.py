@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from layers.models import Layer
 from inventory.models import Inventory
 from sublayers.serializers import SubLayerSerializer
+from products.serializers import MiniProductSerializer
 
 User = get_user_model()
 
@@ -18,12 +19,14 @@ class LayerSerializer(serializers.ModelSerializer):
         slug_field="inventory_code", queryset=Inventory.objects.all()
     )
     sublayers = SubLayerSerializer(many=True, read_only=True)
+    products = MiniProductSerializer(source="layer_products", many=True, read_only=True)
     inventory_details = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Layer
         fields = (
+            "id",
             "user",
             "name",
             "inventory",
@@ -33,6 +36,7 @@ class LayerSerializer(serializers.ModelSerializer):
             "user_details",
             "inventory_details",
             "sublayers",
+            "products",
         )
         validators = [
             UniqueTogetherValidator(

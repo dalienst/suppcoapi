@@ -90,6 +90,22 @@ class CartItemSerializer(serializers.ModelSerializer):
                 quantity = 1
                 attrs["quantity"] = 1
 
+        # 0. Multi-Supplier restriction
+        if product and not self.instance:
+            user = self.context["request"].user
+            existing_items = CartItem.objects.filter(cart__user=user)
+            if existing_items.exists():
+                first_item = existing_items.first()
+                if first_item.product.company != product.company:
+                    raise serializers.ValidationError(
+                        {
+                            "multi_supplier_error": (
+                                f"Your cart already contains items from '{first_item.product.company.name}'. "
+                                f"You can only purchase from one supplier at a time in a single checkout order."
+                            )
+                        }
+                    )
+
         # 1. Product quantity Validation
         if product and quantity:
             if product.quantity < quantity:

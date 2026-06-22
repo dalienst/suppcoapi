@@ -11,6 +11,14 @@ class SubLayerListView(generics.ListAPIView):
     permission_classes = [
         AllowAny,
     ]
+    filterset_fields = ["layer", "layer__reference"]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            if self.request.user.is_supplier or self.request.user.is_contractor:
+                return SubLayer.objects.filter(layer__inventory__company=self.request.user.company)
+            return SubLayer.objects.filter(user=self.request.user)
+        return SubLayer.objects.all()
 
 
 class SubLayerListCreateView(generics.ListCreateAPIView):

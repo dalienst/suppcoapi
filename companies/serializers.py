@@ -17,21 +17,34 @@ class CompanySerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=Company.objects.all())],
         required=False,
+        allow_blank=True,
+        allow_null=True,
     )
     phone = serializers.CharField(
         max_length=15,
         validators=[UniqueValidator(queryset=Company.objects.all())],
         required=False,
+        allow_blank=True,
+        allow_null=True,
     )
     logo = serializers.ImageField(use_url=True, required=False)
     registration_number = serializers.CharField(
-        validators=[UniqueValidator(queryset=Company.objects.all())], required=False
+        validators=[UniqueValidator(queryset=Company.objects.all())], 
+        required=False,
+        allow_blank=True,
+        allow_null=True,
     )
     kra_pin = serializers.CharField(
-        validators=[UniqueValidator(queryset=Company.objects.all())], required=False
+        validators=[UniqueValidator(queryset=Company.objects.all())], 
+        required=False,
+        allow_blank=True,
+        allow_null=True,
     )
     vat_number = serializers.CharField(
-        validators=[UniqueValidator(queryset=Company.objects.all())], required=False
+        validators=[UniqueValidator(queryset=Company.objects.all())], 
+        required=False,
+        allow_blank=True,
+        allow_null=True,
     )
 
     class Meta:
